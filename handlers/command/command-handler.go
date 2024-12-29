@@ -50,6 +50,13 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNotif
 
 	h.commands = []*command{
 		{
+			Name:        "start",
+			Usage:       "/start",
+			Regexp:      regexp.MustCompile(`^\/start$`),
+			Description: "приветственное сообщение",
+			Function:    h.Start,
+		},
+		{
 			Name:        "help",
 			Usage:       "/help",
 			Regexp:      regexp.MustCompile(`^\/help$`),
