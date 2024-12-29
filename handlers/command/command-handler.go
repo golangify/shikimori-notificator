@@ -81,6 +81,13 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNotif
 			Function:    h.Topics,
 		},
 		{
+			Name:        "top",
+			Usage:       "/top",
+			Regexp:      regexp.MustCompile(`^\/top$`),
+			Description: "самые отслеживаемые топики",
+			Function:    h.Top,
+		},
+		{
 			Level:       3,
 			Name:        "debug",
 			Usage:       "/debug",
