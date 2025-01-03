@@ -7,7 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func (h *CommandHandler) Top(update *tgbotapi.Update, user *models.User, args []string) {
+func (h *CommandHandler) Toptopics(update *tgbotapi.Update, user *models.User, args []string) {
 	var topTrackedTopics []models.TrackedTopic
 	err := h.Database.Model(&models.TrackedTopic{}).
 		Select("*, COUNT(topic_id) as count").

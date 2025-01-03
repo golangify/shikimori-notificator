@@ -3,6 +3,7 @@ package commandhandler
 import (
 	"regexp"
 	"shikimori-notificator/models"
+	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -31,21 +32,26 @@ func (c *command) Help() string {
 }
 
 type CommandHandler struct {
-	Bot              *tgbotapi.BotAPI
-	Shiki            *shikimori.Client
-	TopicNotificator *topicnotificator.TopicNotificator
+	Bot   *tgbotapi.BotAPI
+	Shiki *shikimori.Client
+
+	TopicNotificator   *topicnotificator.TopicNotificator
+	ProfileNotificator *profilenotificator.ProfileNotificator
 
 	Database *gorm.DB
 
 	commands []*command
 }
 
-func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNotificator *topicnotificator.TopicNotificator, db *gorm.DB) *CommandHandler {
+func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator, db *gorm.DB) *CommandHandler {
 	h := &CommandHandler{
-		Bot:              bot,
-		Shiki:            shiki,
-		TopicNotificator: topicNotificator,
-		Database:         db,
+		Bot:   bot,
+		Shiki: shiki,
+
+		TopicNotificator:   topicNotificator,
+		ProfileNotificator: profileNotificator,
+
+		Database: db,
 	}
 
 	h.commands = []*command{
@@ -81,11 +87,35 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNotif
 			Function:    h.Topics,
 		},
 		{
-			Name:        "top",
-			Usage:       "/top",
-			Regexp:      regexp.MustCompile(`^\/top$`),
+			Name:        "toptopics",
+			Usage:       "/toptopics",
+			Regexp:      regexp.MustCompile(`^\/toptopics$`),
 			Description: "самые отслеживаемые топики",
-			Function:    h.Top,
+			Function:    h.Toptopics,
+		},
+		{
+			Name:  "profile",
+			Usage: "/profile [id | nickname]",
+			ActivatorRegexps: []*regexp.Regexp{
+				regexp.MustCompile(`^\/profile$`),
+			},
+			Regexp:      regexp.MustCompile(`^\/profile (\d+|.+)$`),
+			Description: "получить пользователя по id или имени",
+			Function:    h.Profile,
+		},
+		{
+			Name:        "profiles",
+			Usage:       "/profiles",
+			Regexp:      regexp.MustCompile(`^\/profiles$`),
+			Description: "получить список моих отслеживаемых профилей",
+			Function:    h.Profiles,
+		},
+		{
+			Name:        "topprofiles",
+			Usage:       "/topprofiles",
+			Regexp:      regexp.MustCompile(`^\/topprofiles$`),
+			Description: "самые отслеживаемые профили",
+			Function:    h.Topprofiles,
 		},
 		{
 			Level:       3,

@@ -1,11 +1,12 @@
 package callbackhandler
 
 import (
-	"fmt"
 	"shikimori-notificator/models"
+	topicconstructor "shikimori-notificator/view/constructors/topic"
 	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	shikitypes "github.com/golangify/go-shiki-api/types"
 )
 
 func (h *CallbackHandler) AddTopicToTracking(с *Callback, update *tgbotapi.Update, user *models.User) {
@@ -14,17 +15,17 @@ func (h *CallbackHandler) AddTopicToTracking(с *Callback, update *tgbotapi.Upda
 		panic(err)
 	}
 	if h.TopicNotificator.IsUserTrackingTopic(user.ID, uint(topicID)) {
-		h.Bot.Send(tgbotapi.NewMessage(update.FromChat().ID, "Ты уже отслеживаешь этот топик."))
+		msg := tgbotapi.NewMessage(update.FromChat().ID, "Ты уже отслеживаешь этот топик.")
+		msg.ReplyToMessageID = update.CallbackQuery.Message.MessageID
+		h.Bot.Send(msg)
 		return
 	}
 	err = h.TopicNotificator.AddTrackingTopic(user.ID, uint(topicID))
 	if err != nil {
 		panic(err)
 	}
-	h.Bot.Send(tgbotapi.NewEditMessageReplyMarkup(update.FromChat().ID, update.CallbackQuery.Message.MessageID, tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("удалить из отслеживаемого", fmt.Sprintf("delete_topic_from_tracking %d", topicID)),
-		),
-	)))
-	h.Bot.Send(tgbotapi.NewMessage(update.FromChat().ID, "Топик добавлен в отслеживаемые."))
+	h.Bot.Send(tgbotapi.NewEditMessageReplyMarkup(update.FromChat().ID, update.CallbackQuery.Message.MessageID, *topicconstructor.ToInlineKeyboard(&shikitypes.Topic{ID: uint(topicID)}, true)))
+	msg := tgbotapi.NewMessage(update.FromChat().ID, "Топик добавлен в отслеживаемые.")
+	msg.ReplyToMessageID = update.CallbackQuery.Message.MessageID
+	h.Bot.Send(msg)
 }

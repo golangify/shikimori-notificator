@@ -1,11 +1,11 @@
 module shikimori-notificator
 
-go 1.19
+go 1.23.4
 
 require (
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
-	github.com/golangify/go-shiki-api v0.0.0-20241213164848-e458306a9597
-	gorm.io/driver/sqlite v1.5.6
+	github.com/golangify/go-shiki-api v0.0.0-20241231105544-5b6b9157e0a0
+	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
 )
 

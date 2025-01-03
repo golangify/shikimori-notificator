@@ -26,7 +26,7 @@ type TopicNotificator struct {
 	ticker *time.Ticker
 }
 
-func New(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB) *TopicNotificator {
+func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB) *TopicNotificator {
 	ntfctr := &TopicNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
@@ -42,18 +42,23 @@ func (n *TopicNotificator) Run() {
 	n.ticker = time.NewTicker(time.Minute)
 	for range n.ticker.C {
 		var trackedTopics []models.TrackedTopic
-		n.Database.Find(&trackedTopics).Distinct("topic_id")
+		n.Database.Find(&trackedTopics).Order("last_comment_id").Distinct("topic_id")
 		t := time.NewTicker(time.Second * 2)
-		for _, topic := range trackedTopics {
+		for _, trackedTopic := range trackedTopics {
 			<-t.C
-			lastComments, err := n.Shiki.GetComments(topic.TopicID, shikitypes.TypeTopic, 1, 20, true)
+			topic, err := n.GetTopic(trackedTopic.TopicID)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			lastComments, err := n.Shiki.GetComments(topic.ID, shikitypes.TypeTopic, 1, 20, true)
 			if err != nil {
 				log.Println(err)
 				continue
 			}
 			var newComments []shikitypes.Comment
 			for _, comment := range lastComments {
-				if comment.ID > topic.LastCommentID {
+				if comment.ID > trackedTopic.LastCommentID {
 					newComments = append(newComments, comment)
 				}
 			}
@@ -66,17 +71,13 @@ func (n *TopicNotificator) Run() {
 			}
 
 			var usersTrackedTopic []models.TrackedTopic
-			err = n.Database.Preload("User").Find(&usersTrackedTopic, topic.ID).Error
+			err = n.Database.Preload("User").Find(&usersTrackedTopic, "topic_id = ?", topic.ID).Error
 			if err != nil {
 				log.Println(err)
 				continue
 			}
 			for _, newComment := range newComments {
-				topic, err := n.GetTopic(newComment.CommentableID)
-				if err != nil {
-					log.Println(err)
-					continue
-				}
+				fmt.Println(newComment)
 				msg := tgbotapi.NewMessage(0, fmt.Sprintf(
 					"<a href='%s'>%s</a> в топике <a href='%s'>%s</a>\n\n%s",
 					newComment.User.URL, html.EscapeString(newComment.User.Nickname),
@@ -93,7 +94,7 @@ func (n *TopicNotificator) Run() {
 					}
 				}
 			}
-			err = n.Database.Model(&models.TrackedTopic{}).Where("topic_id = ?", topic.TopicID).UpdateColumn("last_comment_id", newComments[len(newComments)-1].ID).Error
+			err = n.Database.Model(&models.TrackedTopic{}).Where("topic_id = ?", topic.ID).UpdateColumn("last_comment_id", newComments[len(newComments)-1].ID).Error
 			if err != nil {
 				log.Println(err)
 			}
@@ -101,20 +102,12 @@ func (n *TopicNotificator) Run() {
 	}
 }
 
-// привязать новый отслеживаемый топик к пользователю
 func (n *TopicNotificator) AddTrackingTopic(userID uint, topicID uint) error {
-	// проверяем существует ли топик
 	topic, err := n.GetTopic(topicID)
 	if err != nil {
 		return err
 	}
-	// проверяем существует ли пользователь
-	var user models.User
-	if err = n.Database.First(&user, userID).Error; err != nil {
-		return err
-	}
 
-	// получаем последний комментарий топика
 	lastComment, err := n.Shiki.GetComments(topicID, shikitypes.TypeTopic, 1, 1, true)
 	if err != nil {
 		panic(err)
@@ -123,13 +116,16 @@ func (n *TopicNotificator) AddTrackingTopic(userID uint, topicID uint) error {
 	if len(lastComment) != 0 {
 		lastCommentID = lastComment[0].ID
 	}
-	// вносим в базу данных
 	n.Database.Create(&models.TrackedTopic{
-		UserID:        user.ID,
+		UserID:        userID,
 		TopicID:       topic.ID,
 		LastCommentID: lastCommentID,
 	})
 	return nil
+}
+
+func (n *TopicNotificator) DeleteTrackingTopic(userID uint, topicID uint) error {
+	return n.Database.Where("topic_id = ? AND user_id = ?", topicID, userID).Delete(&models.TrackedTopic{}).Error
 }
 
 func (n *TopicNotificator) IsUserTrackingTopic(userID uint, topicID uint) bool {
