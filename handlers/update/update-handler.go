@@ -5,6 +5,7 @@ import (
 	"log"
 	callbackhandler "shikimori-notificator/handlers/callback"
 	commandhandler "shikimori-notificator/handlers/command"
+	messagehandler "shikimori-notificator/handlers/message"
 	"shikimori-notificator/models"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
@@ -22,6 +23,7 @@ type UpdateHandler struct {
 
 	CommandHandler  *commandhandler.CommandHandler
 	CallbackHandler *callbackhandler.CallbackHandler
+	MessageHandler  *messagehandler.MessageHandler
 }
 
 func New(bot *tgbotapi.BotAPI, shiki *shikimori.Client, db *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator) *UpdateHandler {
@@ -32,6 +34,7 @@ func New(bot *tgbotapi.BotAPI, shiki *shikimori.Client, db *gorm.DB, topicNotifi
 
 		CommandHandler:  commandhandler.NewCommandHandler(bot, shiki, topicNotificator, profileNotificator, db),
 		CallbackHandler: callbackhandler.NewCallbackHandler(bot, shiki, topicNotificator, profileNotificator, db),
+		MessageHandler:  messagehandler.NewMessageHandler(bot, shiki, topicNotificator, profileNotificator, db),
 	}
 }
 
@@ -58,7 +61,7 @@ func (h *UpdateHandler) Process(update *tgbotapi.Update) {
 		if update.Message.IsCommand() {
 			h.CommandHandler.Process(update, user)
 		} else {
-			// todo обработка текстового сообщения. Ссылки на топик, чистый айди, ссылки на комментарий и прочее
+			h.MessageHandler.Process(update, user)
 		}
 	} else if update.CallbackQuery != nil {
 		h.CallbackHandler.Process(update, user)

@@ -47,7 +47,6 @@ func (n *ProfileNotificator) Run() {
 			log.Println(err)
 			continue
 		}
-		fmt.Println(trackedProfiles)
 		t := time.NewTicker(time.Second * 2)
 		for _, trackedProfile := range trackedProfiles {
 			<-t.C
