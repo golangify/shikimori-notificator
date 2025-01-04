@@ -27,5 +27,8 @@ func (h *CommandHandler) Topic(update *tgbotapi.Update, user *models.User, args 
 	msg.ReplyMarkup = topicconstructor.ToInlineKeyboard(topic, h.TopicNotificator.IsUserTrackingTopic(user.ID, topic.ID))
 	msg.ParseMode = tgbotapi.ModeHTML
 
-	h.Bot.Send(msg)
+	_, err = h.Bot.Send(msg)
+	if err != nil {
+		panic(err)
+	}
 }

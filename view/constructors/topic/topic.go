@@ -15,10 +15,11 @@ func ToMessageText(t *shikitypes.Topic) string {
 		t.TopicTitle,
 		html.EscapeString(t.Body),
 	)
-	if len(messageText) > 3900 {
-		messageText = messageText[:3900]
+	runeMessageText := []rune(messageText)
+	if len(runeMessageText) > 3900 {
+		runeMessageText = runeMessageText[:3900]
 	}
-	return messageText
+	return string(runeMessageText)
 }
 
 func ToInlineKeyboard(t *shikitypes.Topic, isTopicTracking bool) *tgbotapi.InlineKeyboardMarkup {
