@@ -14,6 +14,7 @@ func (h *CommandHandler) Help(update *tgbotapi.Update, user *models.User, args [
 		}
 		msg.Text += cmd.Help() + "\n\n"
 	}
+	msg.Text += "А также можно отправить ссылку на комментарий(https://shikimori.one/comments/10478513 пример), бот отправит команду на получение топика/профиля из комментария для отслеживания."
 	msg.ParseMode = tgbotapi.ModeHTML
 	h.Bot.Send(msg)
 }

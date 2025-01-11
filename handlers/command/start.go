@@ -17,10 +17,11 @@ func (h *CommandHandler) Start(update *tgbotapi.Update, user *models.User, args 
 	msg := tgbotapi.NewMessage(update.FromChat().ID, fmt.Sprintf(
 		"<b>Привет, %s</b>!\n\n"+
 			"В этом боте можно отслеживать все новые комментарии под темами и профилями с сайта shikimori.one.\n\n"+
-			"Сводка команд - /help\n\n"+
+			"Сводка команд - /help (много полезной информации)\n\n"+
 			"Всего пользователей: %d\n"+
 			"Всего отслеживаемых топиков: %d\n"+
-			"Всего отслеживаемых профилей: %d",
+			"Всего отслеживаемых профилей: %d\n\n"+
+			"Исходный код бота открыт - https://github.com/golangify/shikimori-notificator",
 		html.EscapeString(update.SentFrom().FirstName),
 		totalUsersCount,
 		totalTrackedTopicsCount,

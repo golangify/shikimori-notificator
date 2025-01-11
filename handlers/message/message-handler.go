@@ -21,7 +21,7 @@ type Message struct {
 }
 
 func (m *Message) Help() string {
-	helpText := "Пример: " + m.Usage + " - " + m.Description
+	helpText := "Используй: " + m.Usage + " - " + m.Description
 	if m.Func == nil {
 		helpText += " (действие временно недоступно)"
 	}
@@ -53,7 +53,7 @@ func NewMessageHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNotif
 
 	h.Messages = []Message{
 		{
-			Name:        "test",
+			Name:        "from-comment",
 			Description: "получить топик/профиль по ссылке комментария",
 			Usage:       "https://shikimori.one/comments/10478513",
 			ActivatorRegexps: []*regexp.Regexp{
