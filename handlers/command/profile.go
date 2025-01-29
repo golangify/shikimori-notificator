@@ -30,7 +30,7 @@ func (h *CommandHandler) Profile(update *tgbotapi.Update, user *models.User, arg
 		panic(err)
 	}
 
-	trackingProfile, err := h.ProfileNotificator.GetTrakingProfile(profile.ID, user.ID)
+	trackingProfile, err := h.ProfileNotificator.GetTrackingProfile(profile.ID, user.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -39,5 +39,8 @@ func (h *CommandHandler) Profile(update *tgbotapi.Update, user *models.User, arg
 	msg.ParseMode = tgbotapi.ModeHTML
 	msg.ReplyMarkup = profileconstructor.ToInlineKeyboard(user, trackingProfile, profile)
 
-	h.Bot.Send(msg)
+	_, err = h.Bot.Send(msg)
+	if err != nil {
+		panic(err)
+	}
 }

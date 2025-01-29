@@ -24,7 +24,7 @@ func (h *CallbackHandler) DeleteProfileFromTracking(с *Callback, update *tgbota
 	}
 	h.ProfileNotificator.DeleteTrackingProfile(uint(profileID), user.ID)
 
-	trackingProfile, err := h.ProfileNotificator.GetTrakingProfile(profile.ID, user.ID)
+	trackingProfile, err := h.ProfileNotificator.GetTrackingProfile(profile.ID, user.ID)
 	if err != nil {
 		panic(err)
 	}

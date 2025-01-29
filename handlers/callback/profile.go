@@ -27,7 +27,7 @@ func (h *CallbackHandler) Profile(с *Callback, update *tgbotapi.Update, user *m
 	msg := tgbotapi.NewMessage(update.FromChat().ID, profileconstructor.ToMessageText(profile))
 	msg.ParseMode = tgbotapi.ModeHTML
 
-	trackingProfile, err := h.ProfileNotificator.GetTrakingProfile(profile.ID, user.ID)
+	trackingProfile, err := h.ProfileNotificator.GetTrackingProfile(profile.ID, user.ID)
 	if err != nil {
 		panic(err)
 	}

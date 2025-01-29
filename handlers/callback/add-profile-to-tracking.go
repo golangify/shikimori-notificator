@@ -27,7 +27,7 @@ func (h *CallbackHandler) AddProfileToTracking(с *Callback, update *tgbotapi.Up
 	if err != nil {
 		panic(err)
 	}
-	trackingProfile, err := h.ProfileNotificator.GetTrakingProfile(profile.ID, user.ID)
+	trackingProfile, err := h.ProfileNotificator.GetTrackingProfile(profile.ID, user.ID)
 	if err != nil {
 		panic(err)
 	}
