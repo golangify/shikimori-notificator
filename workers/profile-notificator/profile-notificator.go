@@ -1,10 +1,15 @@
 package profilenotificator
 
 import (
-	"fmt"
-	"html"
+	"io"
 	"log"
+	"net/http"
+	"regexp"
 	"shikimori-notificator/models"
+	commentconstructor "shikimori-notificator/view/constructors/comment"
+	topicnotificator "shikimori-notificator/workers/topic-notificator"
+	"slices"
+	"strconv"
 	"sync"
 	"time"
 
@@ -14,10 +19,14 @@ import (
 	"gorm.io/gorm"
 )
 
+var commentIDRregexp = regexp.MustCompile(`data-track_comment=\\"(\d+)\\"`)
+
 type ProfileNotificator struct {
 	Shiki    *shikimori.Client
 	Bot      *tgbotapi.BotAPI
 	Database *gorm.DB
+
+	TopicNotificator *topicnotificator.TopicNotificator
 
 	CachedProfiles           map[uint]*shikitypes.UserProfile
 	CachedProfilesByNickname map[string]*shikitypes.UserProfile
@@ -25,11 +34,13 @@ type ProfileNotificator struct {
 	ticker                   *time.Ticker
 }
 
-func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB) *ProfileNotificator {
+func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, topicNotificator *topicnotificator.TopicNotificator) *ProfileNotificator {
 	n := &ProfileNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
 		Database: database,
+
+		TopicNotificator: topicNotificator,
 
 		CachedProfiles:           make(map[uint]*shikitypes.UserProfile),
 		CachedProfilesByNickname: make(map[string]*shikitypes.UserProfile),
@@ -39,7 +50,7 @@ func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, databa
 }
 
 func (n *ProfileNotificator) Run() {
-	n.ticker = time.NewTicker(time.Minute)
+	n.ticker = time.NewTicker(time.Second * 5)
 	for range n.ticker.C {
 		var trackedProfiles []models.TrackedProfile
 		err := n.Database.Find(&trackedProfiles).Order("last_comment_id").Distinct("profile_id").Error
@@ -55,6 +66,7 @@ func (n *ProfileNotificator) Run() {
 				log.Println(err)
 				continue
 			}
+
 			lastComments, err := n.Shiki.GetComments(userProfile.ID, shikitypes.TypeUser, 1, 20, true)
 			if err != nil {
 				log.Println(err)
@@ -69,9 +81,7 @@ func (n *ProfileNotificator) Run() {
 			if len(newComments) == 0 {
 				continue
 			}
-			for i, j := 0, len(newComments)-1; i < j; i, j = i+1, j-1 {
-				newComments[i], newComments[j] = newComments[j], newComments[i]
-			}
+			slices.Reverse(newComments)
 
 			var usersTrackedProfile []models.TrackedProfile
 			err = n.Database.Preload("User").Find(&usersTrackedProfile, "profile_id = ?", userProfile.ID).Error
@@ -80,12 +90,7 @@ func (n *ProfileNotificator) Run() {
 				continue
 			}
 			for _, newComment := range newComments {
-				msg := tgbotapi.NewMessage(0, fmt.Sprintf(
-					"<a href='%s'>%s</a> в профиле <a href='%s'>%s</a>\n\n%s",
-					newComment.User.URL, html.EscapeString(newComment.User.Nickname),
-					userProfile.URL, html.EscapeString(userProfile.Nickname),
-					html.EscapeString(newComment.Body),
-				))
+				msg := tgbotapi.NewMessage(0, commentconstructor.ProfileToMessageText(&newComment, userProfile))
 				msg.ParseMode = tgbotapi.ModeHTML
 				for _, userTrackedProfile := range usersTrackedProfile {
 					msg.BaseChat.ChatID = userTrackedProfile.User.TgID
@@ -100,7 +105,106 @@ func (n *ProfileNotificator) Run() {
 				log.Println(err)
 			}
 		}
+
+		// проверка поcтинга
+		trackedProfiles = []models.TrackedProfile{}
+		if err = n.Database.Find(&trackedProfiles, "track_posting = ?", true).Order("last_posted_comment_id").Distinct("profile_id").Error; err != nil {
+			log.Println(err)
+			continue
+		}
+		for _, trackedProfile := range trackedProfiles {
+			userProfile, err := n.GetUserProfile(trackedProfile.ProfileID)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			var usersTrackedProfile []models.TrackedProfile
+			err = n.Database.Preload("User").Find(&usersTrackedProfile, "profile_id = ? and track_posting = ?", userProfile.ID, true).Error
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			commentIDs, err := n.GetLast20PostedCommentIDs(userProfile.Nickname)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			var newCommentIDs []uint
+			for _, commentID := range commentIDs {
+				if commentID > trackedProfile.LastPostedCommentID {
+					newCommentIDs = append(newCommentIDs, commentID)
+				}
+			}
+			if len(newCommentIDs) == 0 {
+				continue
+			}
+			var newComments []shikitypes.Comment
+			for _, newCommentID := range newCommentIDs {
+				<-t.C
+				commment, err := n.Shiki.GetComment(newCommentID)
+				if err != nil {
+					if err == shikimori.ErrNotFound {
+						continue
+					}
+					log.Println(err)
+					continue
+				}
+				newComments = append(newComments, *commment)
+			}
+
+			for _, newComment := range newComments {
+				msg := tgbotapi.NewMessage(0, "")
+				if newComment.CommentableType == shikitypes.TypeUser {
+					msg.Text = commentconstructor.ProfileToMessageText(&newComment, userProfile)
+				} else {
+					topic, err := n.TopicNotificator.GetTopic(newComment.CommentableID)
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+					msg.Text = commentconstructor.TopicToMessageText(&newComment, topic)
+				}
+				msg.ParseMode = tgbotapi.ModeHTML
+				for _, userTrackedProfile := range usersTrackedProfile {
+					msg.BaseChat.ChatID = userTrackedProfile.User.TgID
+					_, err := n.Bot.Send(msg)
+					if err != nil {
+						log.Println(err)
+					}
+				}
+			}
+			err = n.Database.Model(&models.TrackedProfile{}).Where("profile_id = ?", userProfile.ID).UpdateColumn("last_posted_comment_id", newComments[len(newComments)-1].ID).Error
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		t.Stop()
 	}
+}
+
+func (n *ProfileNotificator) GetLast20PostedCommentIDs(username string) ([]uint, error) {
+	var result []uint
+	resp, err := n.Shiki.MakeRequest(http.MethodGet, "/"+username+"/comments", nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	htmlByteData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	matches := commentIDRregexp.FindAllStringSubmatch(string(htmlByteData), -1)
+	for _, match := range matches {
+		commentID, err := strconv.ParseUint(match[1], 10, 32)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, uint(commentID))
+	}
+	slices.Reverse(result)
+	return result, nil
 }
 
 func (n *ProfileNotificator) AddTrackingProfile(userID uint, profileID uint) error {
@@ -118,13 +222,34 @@ func (n *ProfileNotificator) AddTrackingProfile(userID uint, profileID uint) err
 		lastCommentID = lastComment[0].ID
 	}
 
+	lastPostedComment, err := n.GetLast20PostedCommentIDs(profile.Nickname)
+	if err != nil {
+		return err
+	}
+	lastPostedCommentID := uint(0)
+	if len(lastPostedComment) != 0 {
+		lastPostedCommentID = lastPostedComment[len(lastPostedComment)-1]
+	}
+
 	n.Database.Create(&models.TrackedProfile{
-		UserID:        userID,
-		ProfileID:     profileID,
-		LastCommentID: lastCommentID,
+		UserID:              userID,
+		ProfileID:           profileID,
+		LastCommentID:       lastCommentID,
+		LastPostedCommentID: lastPostedCommentID,
 	})
 
 	return nil
+}
+
+func (n *ProfileNotificator) GetTrakingProfile(targetProfileID, userID uint) (*models.TrackedProfile, error) {
+	var result models.TrackedProfile
+	if err := n.Database.First(&result, "profile_id = ? AND user_id = ?", targetProfileID, userID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &result, nil
 }
 
 func (n *ProfileNotificator) DeleteTrackingProfile(trackingProfileID uint, userID uint) error {

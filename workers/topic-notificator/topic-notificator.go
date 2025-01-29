@@ -1,11 +1,9 @@
 package topicnotificator
 
 import (
-	"fmt"
-	"html"
 	"log"
 	"shikimori-notificator/models"
-	"strconv"
+	commentconstructor "shikimori-notificator/view/constructors/comment"
 	"sync"
 	"time"
 
@@ -77,13 +75,7 @@ func (n *TopicNotificator) Run() {
 				continue
 			}
 			for _, newComment := range newComments {
-				fmt.Println(newComment)
-				msg := tgbotapi.NewMessage(0, fmt.Sprintf(
-					"<a href='%s'>%s</a> в топике <a href='%s'>%s</a>\n\n%s",
-					newComment.User.URL, html.EscapeString(newComment.User.Nickname),
-					shikimori.ShikiSchema+"://"+shikimori.ShikiDomain+topic.Forum.URL+"/"+strconv.FormatUint(uint64(topic.ID), 10), topic.TopicTitle,
-					html.EscapeString(newComment.Body),
-				))
+				msg := tgbotapi.NewMessage(0, commentconstructor.TopicToMessageText(&newComment, topic))
 				msg.ParseMode = tgbotapi.ModeHTML
 				for _, userTrackedTopic := range usersTrackedTopic {
 					<-t.C

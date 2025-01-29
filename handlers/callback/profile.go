@@ -14,7 +14,7 @@ func (h *CallbackHandler) Profile(с *Callback, update *tgbotapi.Update, user *m
 	if err != nil {
 		panic(err)
 	}
-	profile, err := h.Profilenotificator.GetUserProfile(uint(profileID))
+	profile, err := h.ProfileNotificator.GetUserProfile(uint(profileID))
 	if err != nil {
 		if err == shikimori.ErrNotFound {
 			msg := tgbotapi.NewMessage(update.FromChat().ID, "Пользователь не найден.")
@@ -27,7 +27,12 @@ func (h *CallbackHandler) Profile(с *Callback, update *tgbotapi.Update, user *m
 	msg := tgbotapi.NewMessage(update.FromChat().ID, profileconstructor.ToMessageText(profile))
 	msg.ParseMode = tgbotapi.ModeHTML
 
-	keyboard := profileconstructor.ToInlineKeyboard(profile, h.Profilenotificator.IsUserTrackingProfile(user.ID, profile.ID))
+	trackingProfile, err := h.ProfileNotificator.GetTrakingProfile(profile.ID, user.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	keyboard := profileconstructor.ToInlineKeyboard(user, trackingProfile, profile)
 	msg.ReplyMarkup = keyboard
 
 	h.Bot.Send(msg)

@@ -23,7 +23,7 @@ type CallbackHandler struct {
 	Shiki *shikimori.Client
 
 	TopicNotificator   *topicnotificator.TopicNotificator
-	Profilenotificator *profilenotificator.ProfileNotificator
+	ProfileNotificator *profilenotificator.ProfileNotificator
 
 	Database *gorm.DB
 
@@ -36,7 +36,7 @@ func NewCallbackHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNoti
 		Shiki: shiki,
 
 		TopicNotificator:   topicNotificator,
-		Profilenotificator: profileNotificator,
+		ProfileNotificator: profileNotificator,
 
 		Database: db,
 	}
@@ -65,6 +65,10 @@ func NewCallbackHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNoti
 		{
 			Regexp: regexp.MustCompile(`^profile (\d+)$`),
 			Func:   h.Profile,
+		},
+		{
+			Regexp: regexp.MustCompile(`set_tracking_profile_posting (\d+) (true|false)`),
+			Func:   h.setTrackingProfilePosting,
 		},
 	}
 

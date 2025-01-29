@@ -47,7 +47,7 @@ func main() {
 	topicNotificator := topicnotificator.NewTopicNotificator(shiki, bot, db)
 	go topicNotificator.Run()
 
-	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db)
+	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db, topicNotificator)
 	go profileNotificator.Run()
 
 	// обновлятор
