@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"shikimori-notificator/models"
+	"shikimori-notificator/workers/filter"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
 	"slices"
 	"strconv"
@@ -25,17 +26,17 @@ type ProfileNotificator struct {
 	Bot      *tgbotapi.BotAPI
 	Database *gorm.DB
 
-	TopicNotificator *topicnotificator.TopicNotificator
+	TopicNotificator *topicnotificator.TopicNotificator // только для кэша. TODO: вынести кэш в отдельный пакет
 
 	CachedProfiles           map[uint]*shikitypes.UserProfile
 	CachedProfilesByNickname map[string]*shikitypes.UserProfile
 	Mu                       sync.Mutex
 	ticker                   *time.Ticker
 
-	filter *DuplicatorFilter
+	filter *filter.Filter
 }
 
-func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, topicNotificator *topicnotificator.TopicNotificator) *ProfileNotificator {
+func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, filter *filter.Filter) *ProfileNotificator {
 	n := &ProfileNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
@@ -46,14 +47,14 @@ func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, databa
 		CachedProfiles:           make(map[uint]*shikitypes.UserProfile),
 		CachedProfilesByNickname: make(map[string]*shikitypes.UserProfile),
 
-		filter: NewDuplicatorFilter(),
+		filter: filter,
 	}
 
 	return n
 }
 
 func (n *ProfileNotificator) Run() {
-	n.ticker = time.NewTicker(time.Second)
+	n.ticker = time.NewTicker(time.Minute)
 	for range n.ticker.C {
 		err := n.notifyProfiles()
 		if err != nil {

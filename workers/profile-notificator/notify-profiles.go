@@ -54,7 +54,7 @@ func (n *ProfileNotificator) notifyProfiles() error {
 			msg := tgbotapi.NewMessage(0, commentconstructor.ProfileToMessageText(&newComment, userProfile))
 			msg.ParseMode = tgbotapi.ModeHTML
 			for _, userTrackedProfile := range usersTrackedProfile {
-				if n.filter.Check(newComment.ID, userTrackedProfile.UserID) {
+				if !n.filter.Ok(newComment.ID, userTrackedProfile.User.ID) {
 					continue
 				}
 				msg.BaseChat.ChatID = userTrackedProfile.User.TgID

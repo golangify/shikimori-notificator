@@ -5,6 +5,7 @@ import (
 	"shikimori-notificator/config"
 	updatehandler "shikimori-notificator/handlers/update"
 	"shikimori-notificator/models"
+	"shikimori-notificator/workers/filter"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
 
@@ -44,10 +45,12 @@ func main() {
 		log.Printf("авторизован в профиле %s", shiki.Me.Nickname)
 	}
 
-	topicNotificator := topicnotificator.NewTopicNotificator(shiki, bot, db)
+	filter := filter.NewFilter()
+
+	topicNotificator := topicnotificator.NewTopicNotificator(shiki, bot, db, filter)
 	go topicNotificator.Run()
 
-	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db, topicNotificator)
+	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db, topicNotificator, filter)
 	go profileNotificator.Run()
 
 	// обновлятор

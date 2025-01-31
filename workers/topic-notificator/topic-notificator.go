@@ -4,6 +4,7 @@ import (
 	"log"
 	"shikimori-notificator/models"
 	commentconstructor "shikimori-notificator/view/constructors/comment"
+	"shikimori-notificator/workers/filter"
 	"sync"
 	"time"
 
@@ -21,14 +22,16 @@ type TopicNotificator struct {
 	CachedTopics map[uint]*shikitypes.Topic
 	Mu           sync.Mutex
 
-	ticker *time.Ticker
+	Filter *filter.Filter
 }
 
-func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB) *TopicNotificator {
+func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, filter *filter.Filter) *TopicNotificator {
 	ntfctr := &TopicNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
 		Database: database,
+
+		Filter: filter,
 	}
 
 	ntfctr.CachedTopics = make(map[uint]*shikitypes.Topic)
@@ -37,8 +40,8 @@ func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database
 }
 
 func (n *TopicNotificator) Run() {
-	n.ticker = time.NewTicker(time.Minute)
-	for range n.ticker.C {
+	t := time.NewTicker(time.Minute)
+	for range t.C {
 		var trackedTopics []models.TrackedTopic
 		n.Database.Find(&trackedTopics).Order("last_comment_id").Distinct("topic_id")
 		t := time.NewTicker(time.Second * 2)
@@ -78,6 +81,9 @@ func (n *TopicNotificator) Run() {
 				msg := tgbotapi.NewMessage(0, commentconstructor.TopicToMessageText(&newComment, topic))
 				msg.ParseMode = tgbotapi.ModeHTML
 				for _, userTrackedTopic := range usersTrackedTopic {
+					if !n.Filter.Ok(newComment.ID, userTrackedTopic.User.ID) {
+						continue
+					}
 					<-t.C
 					msg.BaseChat.ChatID = userTrackedTopic.User.TgID
 					_, err = n.Bot.Send(msg)
