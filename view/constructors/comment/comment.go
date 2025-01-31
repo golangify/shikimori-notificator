@@ -11,9 +11,10 @@ import (
 
 func ProfileToMessageText(c *shikitypes.Comment, commentableUser *shikitypes.UserProfile) string {
 	result := fmt.Sprintf(
-		"<a href='%s'>%s</a> в профиле <a href='%s'>%s</a>\n\n%s",
+		"<a href='%s'>%s</a> в профиле <a href='%s'>%s</a> <a href='%s://%s/comments/%d'>#</a>\n\n%s",
 		c.User.URL, html.EscapeString(c.User.Nickname),
 		commentableUser.URL, html.EscapeString(commentableUser.Nickname),
+		shikimori.ShikiSchema, shikimori.ShikiDomain, c.ID,
 		html.EscapeString(c.Body),
 	)
 	runeResult := []rune(result)
@@ -26,9 +27,10 @@ func ProfileToMessageText(c *shikitypes.Comment, commentableUser *shikitypes.Use
 
 func TopicToMessageText(c *shikitypes.Comment, commentableTopic *shikitypes.Topic) string {
 	result := fmt.Sprintf(
-		"<a href='%s'>%s</a> в топике <a href='%s'>%s</a>\n\n%s",
+		"<a href='%s'>%s</a> в топике <a href='%s'>%s</a> <a href='%s://%s/comments/%d'>#</a>\n\n%s",
 		c.User.URL, html.EscapeString(c.User.Nickname),
 		shikimori.ShikiSchema+"://"+shikimori.ShikiDomain+commentableTopic.Forum.URL+"/"+strconv.FormatUint(uint64(commentableTopic.ID), 10), commentableTopic.TopicTitle,
+		shikimori.ShikiSchema, shikimori.ShikiDomain, c.ID,
 		html.EscapeString(c.Body),
 	)
 	runeResult := []rune(result)
