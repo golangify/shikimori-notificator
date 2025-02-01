@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"regexp"
 	"shikimori-notificator/models"
+	"shikimori-notificator/workers/cacher"
 	"shikimori-notificator/workers/filter"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
 	"slices"
 	"strconv"
-	"sync"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -26,17 +26,14 @@ type ProfileNotificator struct {
 	Bot      *tgbotapi.BotAPI
 	Database *gorm.DB
 
-	TopicNotificator *topicnotificator.TopicNotificator // только для кэша. TODO: вынести кэш в отдельный пакет
-
-	CachedProfiles           map[uint]*shikitypes.UserProfile
-	CachedProfilesByNickname map[string]*shikitypes.UserProfile
-	Mu                       sync.Mutex
-	ticker                   *time.Ticker
+	TopicNotificator *topicnotificator.TopicNotificator
+	ticker           *time.Ticker
 
 	filter *filter.Filter
+	Cacher *cacher.Cacher
 }
 
-func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, filter *filter.Filter) *ProfileNotificator {
+func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, filter *filter.Filter, cacher *cacher.Cacher) *ProfileNotificator {
 	n := &ProfileNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
@@ -44,10 +41,8 @@ func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, databa
 
 		TopicNotificator: topicNotificator,
 
-		CachedProfiles:           make(map[uint]*shikitypes.UserProfile),
-		CachedProfilesByNickname: make(map[string]*shikitypes.UserProfile),
-
 		filter: filter,
+		Cacher: cacher,
 	}
 
 	return n
@@ -151,11 +146,9 @@ func (n *ProfileNotificator) IsUserTrackingProfile(userID uint, profileID uint) 
 }
 
 func (n *ProfileNotificator) GetUserProfile(id uint) (*shikitypes.UserProfile, error) {
-	n.Mu.Lock()
-	userProfile, ok := n.CachedProfiles[id]
-	n.Mu.Unlock()
-	if ok {
-		return userProfile, nil
+	profile := n.Cacher.GetProfile(id)
+	if profile != nil {
+		return profile, nil
 	}
 
 	userProfile, err := n.Shiki.GetUserProfile(id)
@@ -163,19 +156,15 @@ func (n *ProfileNotificator) GetUserProfile(id uint) (*shikitypes.UserProfile, e
 		return nil, err
 	}
 
-	n.Mu.Lock()
-	n.CachedProfiles[id] = userProfile
-	n.Mu.Unlock()
+	n.Cacher.SetProfile(userProfile.ID, *userProfile)
 
 	return userProfile, nil
 }
 
 func (n *ProfileNotificator) GetUserProfileByNickname(nickname string) (*shikitypes.UserProfile, error) {
-	n.Mu.Lock()
-	userProfile, ok := n.CachedProfilesByNickname[nickname]
-	n.Mu.Unlock()
-	if ok {
-		return userProfile, nil
+	profile := n.Cacher.GetProfileByNickname(nickname)
+	if profile != nil {
+		return profile, nil
 	}
 
 	userProfile, err := n.Shiki.GetUserProfileByNickname(nickname)
@@ -183,9 +172,23 @@ func (n *ProfileNotificator) GetUserProfileByNickname(nickname string) (*shikity
 		return nil, err
 	}
 
-	n.Mu.Lock()
-	n.CachedProfilesByNickname[userProfile.Nickname] = userProfile
-	n.Mu.Unlock()
+	n.Cacher.SetProfileByNickname(userProfile.Nickname, *userProfile)
 
 	return userProfile, nil
+}
+
+func (n *ProfileNotificator) GetComment(id uint) (*shikitypes.Comment, error) {
+	comment := n.Cacher.GetComment(id)
+	if comment != nil {
+		return comment, nil
+	}
+
+	comment, err := n.Shiki.GetComment(id)
+	if err != nil {
+		return nil, err
+	}
+
+	n.Cacher.SetComment(comment.ID, *comment)
+
+	return comment, nil
 }

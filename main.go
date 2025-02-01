@@ -5,6 +5,7 @@ import (
 	"shikimori-notificator/config"
 	updatehandler "shikimori-notificator/handlers/update"
 	"shikimori-notificator/models"
+	"shikimori-notificator/workers/cacher"
 	"shikimori-notificator/workers/filter"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
@@ -45,16 +46,16 @@ func main() {
 		log.Printf("авторизован в профиле %s", shiki.Me.Nickname)
 	}
 
+	cacher := cacher.NewCacher()
 	filter := filter.NewFilter()
 
-	topicNotificator := topicnotificator.NewTopicNotificator(shiki, bot, db, filter)
+	topicNotificator := topicnotificator.NewTopicNotificator(shiki, bot, db, filter, cacher)
 	go topicNotificator.Run()
 
-	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db, topicNotificator, filter)
+	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db, topicNotificator, filter, cacher)
 	go profileNotificator.Run()
 
-	// обновлятор
-	uh := updatehandler.New(bot, shiki, db, topicNotificator, profileNotificator)
+	uh := updatehandler.New(bot, shiki, db, cacher, topicNotificator, profileNotificator)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60

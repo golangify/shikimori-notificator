@@ -50,7 +50,7 @@ func (n *ProfileNotificator) notifyPosting() error {
 		var newComments []shikitypes.Comment
 		for _, newCommentID := range newCommentIDs {
 			<-t.C
-			commment, err := n.Shiki.GetComment(newCommentID)
+			commment, err := n.GetComment(newCommentID)
 			if err != nil {
 				if err == shikimori.ErrNotFound {
 					continue

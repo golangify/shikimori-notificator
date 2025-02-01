@@ -4,8 +4,8 @@ import (
 	"log"
 	"shikimori-notificator/models"
 	commentconstructor "shikimori-notificator/view/constructors/comment"
+	"shikimori-notificator/workers/cacher"
 	"shikimori-notificator/workers/filter"
-	"sync"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -18,23 +18,20 @@ type TopicNotificator struct {
 	Shiki    *shikimori.Client
 	Bot      *tgbotapi.BotAPI
 	Database *gorm.DB
-
-	CachedTopics map[uint]*shikitypes.Topic
-	Mu           sync.Mutex
+	Cacher   *cacher.Cacher
 
 	Filter *filter.Filter
 }
 
-func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, filter *filter.Filter) *TopicNotificator {
+func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, filter *filter.Filter, cacher *cacher.Cacher) *TopicNotificator {
 	ntfctr := &TopicNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
 		Database: database,
 
 		Filter: filter,
+		Cacher: cacher,
 	}
-
-	ntfctr.CachedTopics = make(map[uint]*shikitypes.Topic)
 
 	return ntfctr
 }
@@ -138,10 +135,8 @@ func (n *TopicNotificator) IsUserTrackingTopic(userID uint, topicID uint) bool {
 }
 
 func (n *TopicNotificator) GetTopic(id uint) (*shikitypes.Topic, error) {
-	n.Mu.Lock()
-	topic, ok := n.CachedTopics[id]
-	n.Mu.Unlock()
-	if ok {
+	topic := n.Cacher.GetTopic(id)
+	if topic != nil {
 		return topic, nil
 	}
 
@@ -150,9 +145,23 @@ func (n *TopicNotificator) GetTopic(id uint) (*shikitypes.Topic, error) {
 		return nil, err
 	}
 
-	n.Mu.Lock()
-	n.CachedTopics[id] = topic
-	n.Mu.Unlock()
+	n.Cacher.SetTopic(topic.ID, *topic)
 
 	return topic, nil
+}
+
+func (n *TopicNotificator) GetComment(id uint) (*shikitypes.Comment, error) {
+	comment := n.Cacher.GetComment(id)
+	if comment != nil {
+		return comment, nil
+	}
+
+	comment, err := n.Shiki.GetComment(id)
+	if err != nil {
+		return nil, err
+	}
+
+	n.Cacher.SetComment(comment.ID, *comment)
+
+	return comment, nil
 }
