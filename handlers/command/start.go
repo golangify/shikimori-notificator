@@ -26,9 +26,10 @@ func (h *CommandHandler) Start(update *tgbotapi.Update, user *models.User, args 
 		html.EscapeString(update.SentFrom().FirstName),
 		totalUsersCount,
 		totalTrackedTopicsCount,
-		h.ShikiDB.NumCached(),
 		totalProfilesCount,
+		h.ShikiDB.NumCached(),
 	))
 	msg.ParseMode = tgbotapi.ModeHTML
+	msg.DisableWebPagePreview = true
 	h.Bot.Send(msg)
 }
