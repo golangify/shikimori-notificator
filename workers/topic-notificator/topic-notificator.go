@@ -77,6 +77,7 @@ func (n *TopicNotificator) Run() {
 			for _, newComment := range newComments {
 				msg := tgbotapi.NewMessage(0, commentconstructor.TopicToMessageText(&newComment, topic))
 				msg.ParseMode = tgbotapi.ModeHTML
+				msg.DisableWebPagePreview = true
 				for _, userTrackedTopic := range usersTrackedTopic {
 					if !n.Filter.Ok(newComment.ID, userTrackedTopic.User.ID) {
 						continue

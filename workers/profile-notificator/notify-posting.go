@@ -74,6 +74,7 @@ func (n *ProfileNotificator) notifyPosting() error {
 				msg.Text = commentconstructor.TopicToMessageText(&newComment, topic)
 			}
 			msg.ParseMode = tgbotapi.ModeHTML
+			msg.DisableWebPagePreview = true
 			for _, userTrackedProfile := range usersTrackedProfile {
 				if !n.filter.Ok(newComment.ID, userTrackedProfile.User.ID) {
 					continue

@@ -53,6 +53,7 @@ func (n *ProfileNotificator) notifyProfiles() error {
 		for _, newComment := range newComments {
 			msg := tgbotapi.NewMessage(0, commentconstructor.ProfileToMessageText(&newComment, userProfile))
 			msg.ParseMode = tgbotapi.ModeHTML
+			msg.DisableWebPagePreview = true
 			for _, userTrackedProfile := range usersTrackedProfile {
 				if !n.filter.Ok(newComment.ID, userTrackedProfile.User.ID) {
 					continue
