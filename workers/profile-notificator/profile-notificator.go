@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"regexp"
 	"shikimori-notificator/models"
-	"shikimori-notificator/workers/cacher"
 	"shikimori-notificator/workers/filter"
-	topicnotificator "shikimori-notificator/workers/topic-notificator"
+	shikidb "shikimori-notificator/workers/shiki-db"
 	"slices"
 	"strconv"
 	"time"
@@ -25,24 +24,21 @@ type ProfileNotificator struct {
 	Shiki    *shikimori.Client
 	Bot      *tgbotapi.BotAPI
 	Database *gorm.DB
+	ShikiDB  *shikidb.ShikiDB
 
-	TopicNotificator *topicnotificator.TopicNotificator
-	ticker           *time.Ticker
+	ticker *time.Ticker
 
 	filter *filter.Filter
-	Cacher *cacher.Cacher
 }
 
-func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, filter *filter.Filter, cacher *cacher.Cacher) *ProfileNotificator {
+func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, filter *filter.Filter, shikidb *shikidb.ShikiDB) *ProfileNotificator {
 	n := &ProfileNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
 		Database: database,
-
-		TopicNotificator: topicNotificator,
+		ShikiDB:  shikidb,
 
 		filter: filter,
-		Cacher: cacher,
 	}
 
 	return n
@@ -86,7 +82,7 @@ func (n *ProfileNotificator) GetLast20PostedCommentIDs(username string) ([]uint,
 }
 
 func (n *ProfileNotificator) AddTrackingProfile(userID uint, profileID uint) error {
-	profile, err := n.GetUserProfile(profileID)
+	profile, err := n.ShikiDB.GetProfile(profileID)
 	if err != nil {
 		return err
 	}
@@ -143,52 +139,4 @@ func (n *ProfileNotificator) IsUserTrackingProfile(userID uint, profileID uint) 
 		panic(err)
 	}
 	return true
-}
-
-func (n *ProfileNotificator) GetUserProfile(id uint) (*shikitypes.UserProfile, error) {
-	profile := n.Cacher.GetProfile(id)
-	if profile != nil {
-		return profile, nil
-	}
-
-	userProfile, err := n.Shiki.GetUserProfile(id)
-	if err != nil {
-		return nil, err
-	}
-
-	n.Cacher.SetProfile(userProfile.ID, *userProfile)
-
-	return userProfile, nil
-}
-
-func (n *ProfileNotificator) GetUserProfileByNickname(nickname string) (*shikitypes.UserProfile, error) {
-	profile := n.Cacher.GetProfileByNickname(nickname)
-	if profile != nil {
-		return profile, nil
-	}
-
-	userProfile, err := n.Shiki.GetUserProfileByNickname(nickname)
-	if err != nil {
-		return nil, err
-	}
-
-	n.Cacher.SetProfileByNickname(userProfile.Nickname, *userProfile)
-
-	return userProfile, nil
-}
-
-func (n *ProfileNotificator) GetComment(id uint) (*shikitypes.Comment, error) {
-	comment := n.Cacher.GetComment(id)
-	if comment != nil {
-		return comment, nil
-	}
-
-	comment, err := n.Shiki.GetComment(id)
-	if err != nil {
-		return nil, err
-	}
-
-	n.Cacher.SetComment(comment.ID, *comment)
-
-	return comment, nil
 }

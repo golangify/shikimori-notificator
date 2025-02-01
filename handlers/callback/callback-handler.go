@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"shikimori-notificator/models"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
+	shikidb "shikimori-notificator/workers/shiki-db"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -19,26 +20,26 @@ type Callback struct {
 }
 
 type CallbackHandler struct {
-	Bot   *tgbotapi.BotAPI
-	Shiki *shikimori.Client
+	Bot      *tgbotapi.BotAPI
+	Shiki    *shikimori.Client
+	ShikiDB  *shikidb.ShikiDB
+	Database *gorm.DB
 
 	TopicNotificator   *topicnotificator.TopicNotificator
 	ProfileNotificator *profilenotificator.ProfileNotificator
 
-	Database *gorm.DB
-
 	callbacks []Callback
 }
 
-func NewCallbackHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator, db *gorm.DB) *CallbackHandler {
+func NewCallbackHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, db *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator) *CallbackHandler {
 	h := &CallbackHandler{
-		Bot:   bot,
-		Shiki: shiki,
+		Bot:      bot,
+		Shiki:    shiki,
+		ShikiDB:  shikidb,
+		Database: db,
 
 		TopicNotificator:   topicNotificator,
 		ProfileNotificator: profileNotificator,
-
-		Database: db,
 	}
 
 	h.callbacks = []Callback{

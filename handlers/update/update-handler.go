@@ -7,8 +7,8 @@ import (
 	commandhandler "shikimori-notificator/handlers/command"
 	messagehandler "shikimori-notificator/handlers/message"
 	"shikimori-notificator/models"
-	"shikimori-notificator/workers/cacher"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
+	shikidb "shikimori-notificator/workers/shiki-db"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -17,26 +17,25 @@ import (
 )
 
 type UpdateHandler struct {
-	Bot   *tgbotapi.BotAPI
-	Shiki *shikimori.Client
-
+	Bot      *tgbotapi.BotAPI
+	Shiki    *shikimori.Client
+	ShikiDB  *shikidb.ShikiDB
 	Database *gorm.DB
-	Cacher   *cacher.Cacher
 
 	CommandHandler  *commandhandler.CommandHandler
 	CallbackHandler *callbackhandler.CallbackHandler
 	MessageHandler  *messagehandler.MessageHandler
 }
 
-func New(bot *tgbotapi.BotAPI, shiki *shikimori.Client, db *gorm.DB, cacher *cacher.Cacher, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator) *UpdateHandler {
+func New(bot *tgbotapi.BotAPI, shiki *shikimori.Client, db *gorm.DB, shikidb *shikidb.ShikiDB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator) *UpdateHandler {
 	return &UpdateHandler{
 		Bot:      bot,
 		Shiki:    shiki,
+		ShikiDB:  shikidb,
 		Database: db,
-		Cacher:   cacher,
 
-		CommandHandler:  commandhandler.NewCommandHandler(bot, shiki, topicNotificator, profileNotificator, db, cacher),
-		CallbackHandler: callbackhandler.NewCallbackHandler(bot, shiki, topicNotificator, profileNotificator, db),
+		CommandHandler:  commandhandler.NewCommandHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator),
+		CallbackHandler: callbackhandler.NewCallbackHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator),
 		MessageHandler:  messagehandler.NewMessageHandler(bot, shiki, topicNotificator, profileNotificator, db),
 	}
 }

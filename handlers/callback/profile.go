@@ -14,7 +14,7 @@ func (h *CallbackHandler) Profile(с *Callback, update *tgbotapi.Update, user *m
 	if err != nil {
 		panic(err)
 	}
-	profile, err := h.ProfileNotificator.GetUserProfile(uint(profileID))
+	profile, err := h.ShikiDB.GetProfile(uint(profileID))
 	if err != nil {
 		if err == shikimori.ErrNotFound {
 			msg := tgbotapi.NewMessage(update.FromChat().ID, "Пользователь не найден.")

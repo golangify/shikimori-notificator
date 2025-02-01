@@ -24,7 +24,7 @@ func (h *CommandHandler) Toptopics(update *tgbotapi.Update, user *models.User, a
 	msg := tgbotapi.NewMessage(update.FromChat().ID, "Топ 10 топиков")
 	keyboard := tgbotapi.NewInlineKeyboardMarkup()
 	for _, topTrackedTopic := range topTrackedTopics {
-		topic, err := h.TopicNotificator.GetTopic(topTrackedTopic.TopicID)
+		topic, err := h.ShikiDB.GetTopic(topTrackedTopic.TopicID)
 		if err != nil {
 			panic(err)
 		}

@@ -4,8 +4,8 @@ import (
 	"log"
 	"shikimori-notificator/models"
 	commentconstructor "shikimori-notificator/view/constructors/comment"
-	"shikimori-notificator/workers/cacher"
 	"shikimori-notificator/workers/filter"
+	shikidb "shikimori-notificator/workers/shiki-db"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -18,19 +18,19 @@ type TopicNotificator struct {
 	Shiki    *shikimori.Client
 	Bot      *tgbotapi.BotAPI
 	Database *gorm.DB
-	Cacher   *cacher.Cacher
+	ShikiDB  *shikidb.ShikiDB
 
 	Filter *filter.Filter
 }
 
-func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, filter *filter.Filter, cacher *cacher.Cacher) *TopicNotificator {
+func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, filter *filter.Filter, shikidb *shikidb.ShikiDB) *TopicNotificator {
 	ntfctr := &TopicNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
 		Database: database,
+		ShikiDB:  shikidb,
 
 		Filter: filter,
-		Cacher: cacher,
 	}
 
 	return ntfctr
@@ -44,7 +44,7 @@ func (n *TopicNotificator) Run() {
 		t := time.NewTicker(time.Second * 2)
 		for _, trackedTopic := range trackedTopics {
 			<-t.C
-			topic, err := n.GetTopic(trackedTopic.TopicID)
+			topic, err := n.ShikiDB.GetTopic(trackedTopic.TopicID)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -99,7 +99,7 @@ func (n *TopicNotificator) Run() {
 }
 
 func (n *TopicNotificator) AddTrackingTopic(userID uint, topicID uint) error {
-	topic, err := n.GetTopic(topicID)
+	topic, err := n.ShikiDB.GetTopic(topicID)
 	if err != nil {
 		return err
 	}
@@ -133,36 +133,4 @@ func (n *TopicNotificator) IsUserTrackingTopic(userID uint, topicID uint) bool {
 		panic(err)
 	}
 	return true
-}
-
-func (n *TopicNotificator) GetTopic(id uint) (*shikitypes.Topic, error) {
-	topic := n.Cacher.GetTopic(id)
-	if topic != nil {
-		return topic, nil
-	}
-
-	topic, err := n.Shiki.GetTopic(id)
-	if err != nil {
-		return nil, err
-	}
-
-	n.Cacher.SetTopic(topic.ID, *topic)
-
-	return topic, nil
-}
-
-func (n *TopicNotificator) GetComment(id uint) (*shikitypes.Comment, error) {
-	comment := n.Cacher.GetComment(id)
-	if comment != nil {
-		return comment, nil
-	}
-
-	comment, err := n.Shiki.GetComment(id)
-	if err != nil {
-		return nil, err
-	}
-
-	n.Cacher.SetComment(comment.ID, *comment)
-
-	return comment, nil
 }

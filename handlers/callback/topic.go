@@ -14,7 +14,7 @@ func (h *CallbackHandler) Topic(с *Callback, update *tgbotapi.Update, user *mod
 	if err != nil {
 		panic(err)
 	}
-	topic, err := h.TopicNotificator.GetTopic(uint(topicID))
+	topic, err := h.ShikiDB.GetTopic(uint(topicID))
 	if err != nil {
 		if err == shikimori.ErrNotFound {
 			msg := tgbotapi.NewMessage(update.FromChat().ID, "Топик не найден.")

@@ -12,7 +12,7 @@ import (
 
 func (h *MessageHandler) FromComment(update *tgbotapi.Update, user *models.User, args []string) {
 	commentID, _ := strconv.ParseUint(args[1], 10, 32)
-	comment, err := h.Shiki.GetComment(uint(commentID))
+	comment, err := h.ShikiDB.GetComment(uint(commentID))
 	if err != nil {
 		if err == shikimori.ErrNotFound {
 			h.Bot.Send(tgbotapi.NewMessage(update.FromChat().ID, fmt.Sprint("Комментарий с id ", commentID, " не найден.")))

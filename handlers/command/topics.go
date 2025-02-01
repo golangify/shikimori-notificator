@@ -20,7 +20,7 @@ func (h *CommandHandler) Topics(update *tgbotapi.Update, user *models.User, args
 	msg := tgbotapi.NewMessage(update.FromChat().ID, "Отслеживаемые топики")
 	keyboard := tgbotapi.NewInlineKeyboardMarkup()
 	for _, trackedTopic := range trackedTopics {
-		topic, err := h.TopicNotificator.GetTopic(trackedTopic.TopicID)
+		topic, err := h.ShikiDB.GetTopic(trackedTopic.TopicID)
 		if err != nil {
 			panic(err)
 		}

@@ -5,9 +5,9 @@ import (
 	"shikimori-notificator/config"
 	updatehandler "shikimori-notificator/handlers/update"
 	"shikimori-notificator/models"
-	"shikimori-notificator/workers/cacher"
 	"shikimori-notificator/workers/filter"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
+	shikidb "shikimori-notificator/workers/shiki-db"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -46,16 +46,16 @@ func main() {
 		log.Printf("авторизован в профиле %s", shiki.Me.Nickname)
 	}
 
-	cacher := cacher.NewCacher()
+	shikiDB := shikidb.NewShikiDB(shiki)
 	filter := filter.NewFilter()
 
-	topicNotificator := topicnotificator.NewTopicNotificator(shiki, bot, db, filter, cacher)
+	topicNotificator := topicnotificator.NewTopicNotificator(shiki, bot, db, filter, shikiDB)
 	go topicNotificator.Run()
 
-	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db, topicNotificator, filter, cacher)
+	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db, filter, shikiDB)
 	go profileNotificator.Run()
 
-	uh := updatehandler.New(bot, shiki, db, cacher, topicNotificator, profileNotificator)
+	uh := updatehandler.New(bot, shiki, db, shikiDB, topicNotificator, profileNotificator)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60

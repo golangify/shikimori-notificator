@@ -8,7 +8,7 @@ import (
 )
 
 func (h *CommandHandler) Clearcache(update *tgbotapi.Update, user *models.User, args []string) {
-	numDeleted := h.Cacher.Clear()
+	numDeleted := h.ShikiDB.ClearCache()
 
 	h.Bot.Send(tgbotapi.NewMessage(update.FromChat().ID, fmt.Sprintf("Кэш очищен. Объектов удалено: %d", numDeleted)))
 }

@@ -20,7 +20,7 @@ func (h *CommandHandler) Profiles(update *tgbotapi.Update, user *models.User, ar
 	msg := tgbotapi.NewMessage(update.FromChat().ID, "Отслеживаемые профили")
 	keyboard := tgbotapi.NewInlineKeyboardMarkup()
 	for _, trackedProfile := range trackedProfiles {
-		profile, err := h.ProfileNotificator.GetUserProfile(trackedProfile.ProfileID)
+		profile, err := h.ShikiDB.GetProfile(trackedProfile.ProfileID)
 		if err != nil {
 			panic(err)
 		}

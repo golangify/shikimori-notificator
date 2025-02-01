@@ -13,7 +13,7 @@ func (h *CallbackHandler) setTrackingProfilePosting(с *Callback, update *tgbota
 	if err != nil {
 		panic(err)
 	}
-	profile, err := h.ProfileNotificator.GetUserProfile(uint(profileID))
+	profile, err := h.ShikiDB.GetProfile(uint(profileID))
 	if err != nil {
 		panic(err)
 	}

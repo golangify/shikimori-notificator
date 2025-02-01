@@ -20,7 +20,7 @@ func (n *ProfileNotificator) notifyPosting() error {
 		return err
 	}
 	for _, trackedProfile := range trackedProfiles {
-		userProfile, err := n.GetUserProfile(trackedProfile.ProfileID)
+		userProfile, err := n.ShikiDB.GetProfile(trackedProfile.ProfileID)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -50,7 +50,7 @@ func (n *ProfileNotificator) notifyPosting() error {
 		var newComments []shikitypes.Comment
 		for _, newCommentID := range newCommentIDs {
 			<-t.C
-			commment, err := n.GetComment(newCommentID)
+			commment, err := n.ShikiDB.GetComment(newCommentID)
 			if err != nil {
 				if err == shikimori.ErrNotFound {
 					continue
@@ -66,7 +66,7 @@ func (n *ProfileNotificator) notifyPosting() error {
 			if newComment.CommentableType == shikitypes.TypeUser {
 				msg.Text = commentconstructor.ProfileToMessageText(&newComment, userProfile)
 			} else {
-				topic, err := n.TopicNotificator.GetTopic(newComment.CommentableID)
+				topic, err := n.ShikiDB.GetTopic(newComment.CommentableID)
 				if err != nil {
 					log.Println(err)
 					continue

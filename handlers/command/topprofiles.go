@@ -24,7 +24,7 @@ func (h *CommandHandler) Topprofiles(update *tgbotapi.Update, user *models.User,
 	msg := tgbotapi.NewMessage(update.FromChat().ID, "Топ 10 Профилей")
 	keyboard := tgbotapi.NewInlineKeyboardMarkup()
 	for _, topTrackedProfile := range topTrackedProfiles {
-		profile, err := h.ProfileNotificator.GetUserProfile(topTrackedProfile.ProfileID)
+		profile, err := h.ShikiDB.GetProfile(topTrackedProfile.ProfileID)
 		if err != nil {
 			panic(err)
 		}

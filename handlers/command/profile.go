@@ -17,9 +17,9 @@ func (h *CommandHandler) Profile(update *tgbotapi.Update, user *models.User, arg
 		err     error
 	)
 	if profileID == 0 {
-		profile, err = h.ProfileNotificator.GetUserProfileByNickname(args[1])
+		profile, err = h.ShikiDB.GetProfileByNickname(args[1])
 	} else {
-		profile, err = h.ProfileNotificator.GetUserProfile(uint(profileID))
+		profile, err = h.ShikiDB.GetProfile(uint(profileID))
 	}
 	if err != nil {
 		if err == shikimori.ErrNotFound {

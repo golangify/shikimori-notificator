@@ -22,7 +22,7 @@ func (n *ProfileNotificator) notifyProfiles() error {
 	defer t.Stop()
 	for _, trackedProfile := range trackedProfiles {
 		<-t.C
-		userProfile, err := n.GetUserProfile(trackedProfile.ProfileID)
+		userProfile, err := n.ShikiDB.GetProfile(trackedProfile.ProfileID)
 		if err != nil {
 			log.Println(err)
 			continue

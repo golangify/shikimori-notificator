@@ -11,7 +11,7 @@ import (
 
 func (h *CommandHandler) Topic(update *tgbotapi.Update, user *models.User, args []string) {
 	topicID, _ := strconv.ParseUint(args[1], 10, 32)
-	topic, err := h.TopicNotificator.GetTopic(uint(topicID))
+	topic, err := h.ShikiDB.GetTopic(uint(topicID))
 	if err != nil {
 		if err == shikimori.ErrNotFound {
 			msg := tgbotapi.NewMessage(update.FromChat().ID, "Топик не найден.")
