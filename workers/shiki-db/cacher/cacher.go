@@ -22,12 +22,16 @@ func NewCacher() *Cacher {
 	}
 }
 
+func (c *Cacher) NumCached() uint {
+	numCached := c.cachedComments.NumCached()
+	numCached += c.cachedProfiles.NumCached()
+	numCached += c.cachedProfilesByNickname.NumCached()
+	numCached += c.cachedTopics.NumCached()
+	return numCached
+}
+
 func (c *Cacher) Clear() uint {
-	var numDeleted uint
-	numDeleted += c.cachedComments.Clear()
-	numDeleted += c.cachedProfiles.Clear()
-	numDeleted += c.cachedProfilesByNickname.Clear()
-	numDeleted += c.cachedTopics.Clear()
+	numDeleted := c.NumCached()
 	return numDeleted
 }
 

@@ -7,6 +7,13 @@ type CacheStorage[Key comparable, Value any] struct {
 	mu   sync.Mutex
 }
 
+func (c *CacheStorage[Key, Value]) NumCached() uint {
+	c.mu.Lock()
+	numCached := len(c.data)
+	c.mu.Unlock()
+	return uint(numCached)
+}
+
 func (c *CacheStorage[Key, Value]) Clear() uint {
 	c.mu.Lock()
 	numDeleted := len(c.data)

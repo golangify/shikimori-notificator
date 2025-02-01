@@ -20,11 +20,13 @@ func (h *CommandHandler) Start(update *tgbotapi.Update, user *models.User, args 
 			"Сводка команд - /help (много полезной информации)\n\n"+
 			"Всего пользователей: %d\n"+
 			"Всего отслеживаемых топиков: %d\n"+
-			"Всего отслеживаемых профилей: %d\n\n"+
+			"Всего отслеживаемых профилей: %d\n"+
+			"Сейчас объектов в кэше: %d\n\n"+
 			"Исходный код бота открыт - https://github.com/golangify/shikimori-notificator",
 		html.EscapeString(update.SentFrom().FirstName),
 		totalUsersCount,
 		totalTrackedTopicsCount,
+		h.ShikiDB.NumCached(),
 		totalProfilesCount,
 	))
 	msg.ParseMode = tgbotapi.ModeHTML

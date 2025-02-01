@@ -19,6 +19,10 @@ func NewShikiDB(shiki *shikimori.Client) *ShikiDB {
 	}
 }
 
+func (d *ShikiDB) NumCached() uint {
+	return d.cacher.NumCached()
+}
+
 func (d *ShikiDB) GetComment(commentID uint) (*shikitypes.Comment, error) {
 	comment := d.cacher.GetComment(commentID)
 	if comment != nil {
