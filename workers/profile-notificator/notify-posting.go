@@ -3,7 +3,6 @@ package profilenotificator
 import (
 	"log"
 	"shikimori-notificator/models"
-	commentconstructor "shikimori-notificator/view/constructors/comment"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -64,14 +63,14 @@ func (n *ProfileNotificator) notifyPosting() error {
 		for _, newComment := range newComments {
 			msg := tgbotapi.NewMessage(0, "")
 			if newComment.CommentableType == shikitypes.TypeUser {
-				msg.Text = commentconstructor.ProfileToMessageText(&newComment, userProfile)
+				msg.Text = n.commentConstructor.Profile(&newComment, userProfile)
 			} else {
 				topic, err := n.ShikiDB.GetTopic(newComment.CommentableID)
 				if err != nil {
 					log.Println(err)
 					continue
 				}
-				msg.Text = commentconstructor.TopicToMessageText(&newComment, topic)
+				msg.Text = n.commentConstructor.Topic(&newComment, topic)
 			}
 			msg.ParseMode = tgbotapi.ModeHTML
 			msg.DisableWebPagePreview = true

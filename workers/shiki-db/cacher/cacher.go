@@ -1,7 +1,7 @@
 package cacher
 
 import (
-	cachestorage "shikimori-notificator/workers/cacher/storage"
+	cachestorage "shikimori-notificator/workers/shiki-db/cacher/storage"
 
 	shikitypes "github.com/golangify/go-shiki-api/types"
 )

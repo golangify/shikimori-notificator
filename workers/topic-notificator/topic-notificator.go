@@ -15,20 +15,22 @@ import (
 )
 
 type TopicNotificator struct {
-	Shiki    *shikimori.Client
-	Bot      *tgbotapi.BotAPI
-	Database *gorm.DB
-	ShikiDB  *shikidb.ShikiDB
+	Shiki              *shikimori.Client
+	Bot                *tgbotapi.BotAPI
+	Database           *gorm.DB
+	ShikiDB            *shikidb.ShikiDB
+	commentConstructor *commentconstructor.CommentConstructor
 
 	Filter *filter.Filter
 }
 
-func NewTopicNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, filter *filter.Filter, shikidb *shikidb.ShikiDB) *TopicNotificator {
+func NewTopicNotificator(bot *tgbotapi.BotAPI, shiki *shikimori.Client, database *gorm.DB, shikidb *shikidb.ShikiDB, filter *filter.Filter, commentConstructor *commentconstructor.CommentConstructor) *TopicNotificator {
 	ntfctr := &TopicNotificator{
-		Shiki:    shiki,
-		Bot:      bot,
-		Database: database,
-		ShikiDB:  shikidb,
+		Shiki:              shiki,
+		Bot:                bot,
+		Database:           database,
+		ShikiDB:            shikidb,
+		commentConstructor: commentConstructor,
 
 		Filter: filter,
 	}
@@ -75,7 +77,7 @@ func (n *TopicNotificator) Run() {
 				continue
 			}
 			for _, newComment := range newComments {
-				msg := tgbotapi.NewMessage(0, commentconstructor.TopicToMessageText(&newComment, topic))
+				msg := tgbotapi.NewMessage(0, n.commentConstructor.Topic(&newComment, topic))
 				msg.ParseMode = tgbotapi.ModeHTML
 				msg.DisableWebPagePreview = true
 				for _, userTrackedTopic := range usersTrackedTopic {

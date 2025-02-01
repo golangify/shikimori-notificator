@@ -5,6 +5,7 @@ import (
 	"shikimori-notificator/config"
 	updatehandler "shikimori-notificator/handlers/update"
 	"shikimori-notificator/models"
+	commentconstructor "shikimori-notificator/view/constructors/comment"
 	"shikimori-notificator/workers/filter"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	shikidb "shikimori-notificator/workers/shiki-db"
@@ -48,11 +49,12 @@ func main() {
 
 	shikiDB := shikidb.NewShikiDB(shiki)
 	filter := filter.NewFilter()
+	commentsConstructor := commentconstructor.NewCommentConstructor(shikiDB)
 
-	topicNotificator := topicnotificator.NewTopicNotificator(shiki, bot, db, filter, shikiDB)
+	topicNotificator := topicnotificator.NewTopicNotificator(bot, shiki, db, shikiDB, filter, commentsConstructor)
 	go topicNotificator.Run()
 
-	profileNotificator := profilenotificator.NewProfileNotificator(shiki, bot, db, filter, shikiDB)
+	profileNotificator := profilenotificator.NewProfileNotificator(bot, shiki, shikiDB, db, filter, commentsConstructor)
 	go profileNotificator.Run()
 
 	uh := updatehandler.New(bot, shiki, db, shikiDB, topicNotificator, profileNotificator)

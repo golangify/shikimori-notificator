@@ -3,7 +3,6 @@ package profilenotificator
 import (
 	"log"
 	"shikimori-notificator/models"
-	commentconstructor "shikimori-notificator/view/constructors/comment"
 	"slices"
 	"time"
 
@@ -51,7 +50,7 @@ func (n *ProfileNotificator) notifyProfiles() error {
 			continue
 		}
 		for _, newComment := range newComments {
-			msg := tgbotapi.NewMessage(0, commentconstructor.ProfileToMessageText(&newComment, userProfile))
+			msg := tgbotapi.NewMessage(0, n.commentConstructor.Profile(&newComment, userProfile))
 			msg.ParseMode = tgbotapi.ModeHTML
 			msg.DisableWebPagePreview = true
 			for _, userTrackedProfile := range usersTrackedProfile {

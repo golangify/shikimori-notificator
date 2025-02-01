@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"shikimori-notificator/models"
+	commentconstructor "shikimori-notificator/view/constructors/comment"
 	"shikimori-notificator/workers/filter"
 	shikidb "shikimori-notificator/workers/shiki-db"
 	"slices"
@@ -26,17 +27,20 @@ type ProfileNotificator struct {
 	Database *gorm.DB
 	ShikiDB  *shikidb.ShikiDB
 
-	ticker *time.Ticker
+	commentConstructor *commentconstructor.CommentConstructor
+	filter             *filter.Filter
 
-	filter *filter.Filter
+	ticker *time.Ticker
 }
 
-func NewProfileNotificator(shiki *shikimori.Client, bot *tgbotapi.BotAPI, database *gorm.DB, filter *filter.Filter, shikidb *shikidb.ShikiDB) *ProfileNotificator {
+func NewProfileNotificator(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, database *gorm.DB, filter *filter.Filter, commentConstructor *commentconstructor.CommentConstructor) *ProfileNotificator {
 	n := &ProfileNotificator{
 		Shiki:    shiki,
 		Bot:      bot,
 		Database: database,
 		ShikiDB:  shikidb,
+
+		commentConstructor: commentConstructor,
 
 		filter: filter,
 	}
