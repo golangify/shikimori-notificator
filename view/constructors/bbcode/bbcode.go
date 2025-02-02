@@ -2,6 +2,7 @@ package bbcode
 
 import (
 	shikidb "shikimori-notificator/workers/shiki-db"
+	"strings"
 )
 
 type BBCodeParser struct {
@@ -15,17 +16,25 @@ func NewBBCodeParser(shikidb *shikidb.ShikiDB) *BBCodeParser {
 }
 
 func (p *BBCodeParser) Parse(text string) string {
+	text = strings.TrimSpace(text)
 	runeText := []rune(text)
 	if len(runeText) > 3900 {
 		runeText = runeText[:3900]
 	}
 	text = string(runeText)
 	text = p.parseSingleTags(text)
+	text = p.parseDoubleTags(text)
 	return text
 }
 
 func (p *BBCodeParser) parseSingleTags(text string) string {
-	text = p.parseBBComment(text)
-	text = p.parseBBImage(text)
+	text = p.parseReplyComment(text)
+	text = p.parseImage(text)
+	text = p.parseUser(text)
+	return text
+}
+
+func (p *BBCodeParser) parseDoubleTags(text string) string {
+	text = p.parseSpoiler(text)
 	return text
 }

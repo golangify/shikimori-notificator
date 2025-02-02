@@ -56,10 +56,10 @@ func main() {
 	commentsConstructor := commentconstructor.NewCommentConstructor(bbCodeParser)
 	topicConstructor := topicconstructor.NewTopicConstructor(bbCodeParser)
 
-	topicNotificator := topicnotificator.NewTopicNotificator(bot, shiki, db, shikiDB, filter, commentsConstructor)
+	topicNotificator := topicnotificator.NewTopicNotificator(config, bot, shiki, db, shikiDB, filter, commentsConstructor)
 	go topicNotificator.Run()
 
-	profileNotificator := profilenotificator.NewProfileNotificator(bot, shiki, shikiDB, db, filter, commentsConstructor)
+	profileNotificator := profilenotificator.NewProfileNotificator(config, bot, shiki, shikiDB, db, filter, commentsConstructor)
 	go profileNotificator.Run()
 
 	uh := updatehandler.New(bot, shiki, db, shikiDB, topicNotificator, profileNotificator, topicConstructor)

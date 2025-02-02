@@ -20,7 +20,7 @@ func (n *ProfileNotificator) notifyPosting() error {
 			n.notifyPosting()
 		}
 	}()
-	t := time.NewTicker(time.Second * 2)
+	t := time.NewTicker(n.Config.Notifications.MailDelay)
 	defer t.Stop()
 	trackedProfiles := make([]models.TrackedProfile, 0)
 	if err := n.Database.Find(&trackedProfiles, "track_posting = ?", true).Order("last_posted_comment_id").Distinct("profile_id").Error; err != nil {

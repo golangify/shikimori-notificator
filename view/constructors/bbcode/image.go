@@ -10,7 +10,7 @@ import (
 var bbDeletedImageRegexp = regexp.MustCompile(`<del>\[image=(\d+)\]</del>`)
 var bbImageRegexp = regexp.MustCompile(`\[image=(\d+)\]`)
 
-func (p *BBCodeParser) parseBBImage(text string) string {
+func (p *BBCodeParser) parseImage(text string) string {
 	for _, match := range bbDeletedImageRegexp.FindAllStringSubmatch(text, -1) {
 		imageID, _ := strconv.ParseUint(match[1], 10, 32)
 		imageBBCode := fmt.Sprint("[deleted_image=", imageID, "]")

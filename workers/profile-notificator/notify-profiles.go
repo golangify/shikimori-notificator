@@ -26,7 +26,7 @@ func (n *ProfileNotificator) notifyProfiles() error {
 		log.Println(err)
 		return err
 	}
-	t := time.NewTicker(time.Second * 2)
+	t := time.NewTicker(n.Config.Notifications.MailDelay)
 	defer t.Stop()
 	for _, trackedProfile := range trackedProfiles {
 		<-t.C

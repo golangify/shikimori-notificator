@@ -25,6 +25,7 @@ func LoadFromJsonFile(path string) (*Config, error) {
 		return nil, err
 	}
 
+	cfg.setSafeValues()
 	cfg.Save()
 
 	return cfg, nil

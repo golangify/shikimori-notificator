@@ -2,6 +2,7 @@ package topicnotificator
 
 import (
 	"log"
+	"shikimori-notificator/config"
 	"shikimori-notificator/models"
 	commentconstructor "shikimori-notificator/view/constructors/comment"
 	"shikimori-notificator/workers/filter"
@@ -15,6 +16,7 @@ import (
 )
 
 type TopicNotificator struct {
+	Config             *config.Config
 	Shiki              *shikimori.Client
 	Bot                *tgbotapi.BotAPI
 	Database           *gorm.DB
@@ -24,8 +26,9 @@ type TopicNotificator struct {
 	Filter *filter.Filter
 }
 
-func NewTopicNotificator(bot *tgbotapi.BotAPI, shiki *shikimori.Client, database *gorm.DB, shikidb *shikidb.ShikiDB, filter *filter.Filter, commentConstructor *commentconstructor.CommentConstructor) *TopicNotificator {
+func NewTopicNotificator(config *config.Config, bot *tgbotapi.BotAPI, shiki *shikimori.Client, database *gorm.DB, shikidb *shikidb.ShikiDB, filter *filter.Filter, commentConstructor *commentconstructor.CommentConstructor) *TopicNotificator {
 	ntfctr := &TopicNotificator{
+		Config:             config,
 		Shiki:              shiki,
 		Bot:                bot,
 		Database:           database,
@@ -48,11 +51,11 @@ func (n *TopicNotificator) Run() {
 			n.Run()
 		}
 	}()
-	t := time.NewTicker(time.Minute)
+	t := time.NewTicker(n.Config.Notifications.CheckDelay)
 	for range t.C {
 		var trackedTopics []models.TrackedTopic
 		n.Database.Find(&trackedTopics).Order("last_comment_id").Distinct("topic_id")
-		t := time.NewTicker(time.Second * 2)
+		t := time.NewTicker(n.Config.Notifications.MailDelay)
 		for _, trackedTopic := range trackedTopics {
 			<-t.C
 			topic, err := n.ShikiDB.GetTopic(trackedTopic.TopicID)

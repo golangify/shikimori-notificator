@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"shikimori-notificator/config"
 	"shikimori-notificator/models"
 	commentconstructor "shikimori-notificator/view/constructors/comment"
 	"shikimori-notificator/workers/filter"
@@ -22,6 +23,7 @@ import (
 var commentIDRregexp = regexp.MustCompile(`data-track_comment=\\"(\d+)\\"`)
 
 type ProfileNotificator struct {
+	Config   *config.Config
 	Shiki    *shikimori.Client
 	Bot      *tgbotapi.BotAPI
 	Database *gorm.DB
@@ -33,8 +35,9 @@ type ProfileNotificator struct {
 	ticker *time.Ticker
 }
 
-func NewProfileNotificator(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, database *gorm.DB, filter *filter.Filter, commentConstructor *commentconstructor.CommentConstructor) *ProfileNotificator {
+func NewProfileNotificator(config *config.Config, bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, database *gorm.DB, filter *filter.Filter, commentConstructor *commentconstructor.CommentConstructor) *ProfileNotificator {
 	n := &ProfileNotificator{
+		Config:   config,
 		Shiki:    shiki,
 		Bot:      bot,
 		Database: database,
@@ -49,7 +52,7 @@ func NewProfileNotificator(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikid
 }
 
 func (n *ProfileNotificator) Run() {
-	n.ticker = time.NewTicker(time.Minute)
+	n.ticker = time.NewTicker(n.Config.Notifications.CheckDelay)
 	for range n.ticker.C {
 		err := n.notifyProfiles()
 		if err != nil {
