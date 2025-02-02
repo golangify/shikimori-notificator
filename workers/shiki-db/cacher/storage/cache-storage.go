@@ -1,6 +1,8 @@
 package cachestorage
 
-import "sync"
+import (
+	"sync"
+)
 
 type CacheStorage[Key comparable, Value any] struct {
 	data map[Key]Value

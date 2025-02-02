@@ -76,7 +76,7 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *s
 			ActivatorRegexps: []*regexp.Regexp{
 				regexp.MustCompile(`^\/topic$`),
 			},
-			Regexp:      regexp.MustCompile(`^\/topic (\d+)$`),
+			Regexp:      regexp.MustCompile(`^\/topic(?:_| )?(\d+)$`),
 			Description: "получить топик по id",
 			Function:    h.Topic,
 		},
@@ -100,7 +100,7 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *s
 			ActivatorRegexps: []*regexp.Regexp{
 				regexp.MustCompile(`^\/profile$`),
 			},
-			Regexp:      regexp.MustCompile(`^\/profile (\d+|.+)$`),
+			Regexp:      regexp.MustCompile(`^\/profile(?:_| )?(\d+|.+)$`),
 			Description: "получить пользователя по id или имени",
 			Function:    h.Profile,
 		},
@@ -117,6 +117,13 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *s
 			Regexp:      regexp.MustCompile(`^\/topprofiles$`),
 			Description: "самые отслеживаемые профили",
 			Function:    h.Topprofiles,
+		},
+		{
+			Name:        "image",
+			Usage:       "/image [id]",
+			Regexp:      regexp.MustCompile(`^\/image(?:_| )?(\d+)$`),
+			Description: "изображение по id",
+			Function:    h.image,
 		},
 		{
 			Level:       3,

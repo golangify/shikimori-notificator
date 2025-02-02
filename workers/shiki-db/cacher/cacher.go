@@ -11,6 +11,7 @@ type Cacher struct {
 	cachedProfiles           *cachestorage.CacheStorage[uint, shikitypes.UserProfile]
 	cachedProfilesByNickname *cachestorage.CacheStorage[string, shikitypes.UserProfile]
 	cachedTopics             *cachestorage.CacheStorage[uint, shikitypes.Topic]
+	cachedImagesLink         *cachestorage.CacheStorage[uint, string]
 }
 
 func NewCacher() *Cacher {
@@ -19,6 +20,7 @@ func NewCacher() *Cacher {
 		cachedProfiles:           cachestorage.NewCacheStorage[uint, shikitypes.UserProfile](),
 		cachedProfilesByNickname: cachestorage.NewCacheStorage[string, shikitypes.UserProfile](),
 		cachedTopics:             cachestorage.NewCacheStorage[uint, shikitypes.Topic](),
+		cachedImagesLink:         cachestorage.NewCacheStorage[uint, string](),
 	}
 }
 
@@ -27,6 +29,7 @@ func (c *Cacher) NumCached() uint {
 	numCached += c.cachedProfiles.NumCached()
 	numCached += c.cachedProfilesByNickname.NumCached()
 	numCached += c.cachedTopics.NumCached()
+	numCached += c.cachedImagesLink.NumCached()
 	return numCached
 }
 
@@ -65,4 +68,12 @@ func (c *Cacher) SetTopic(topicID uint, topic shikitypes.Topic) {
 
 func (c *Cacher) GetTopic(topicID uint) *shikitypes.Topic {
 	return c.cachedTopics.Get(topicID)
+}
+
+func (c *Cacher) SetImage(imageID uint, imageLink string) {
+	c.cachedImagesLink.Set(imageID, imageLink)
+}
+
+func (c *Cacher) GetImage(imageID uint) *string {
+	return c.cachedImagesLink.Get(imageID)
 }

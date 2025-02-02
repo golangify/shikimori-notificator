@@ -41,15 +41,15 @@ type MessageHandler struct {
 	messages []Message
 }
 
-func NewMessageHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator, database *gorm.DB) *MessageHandler {
+func NewMessageHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, database *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator) *MessageHandler {
 	h := &MessageHandler{
-		Bot:   bot,
-		Shiki: shiki,
+		Bot:      bot,
+		Shiki:    shiki,
+		ShikiDB:  shikidb,
+		Database: database,
 
 		TopicNotificator:   topicNotificator,
 		Profilenotificator: profileNotificator,
-
-		Database: database,
 	}
 
 	h.messages = []Message{

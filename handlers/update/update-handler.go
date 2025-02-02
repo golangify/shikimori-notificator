@@ -36,7 +36,7 @@ func New(bot *tgbotapi.BotAPI, shiki *shikimori.Client, db *gorm.DB, shikidb *sh
 
 		CommandHandler:  commandhandler.NewCommandHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator),
 		CallbackHandler: callbackhandler.NewCallbackHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator),
-		MessageHandler:  messagehandler.NewMessageHandler(bot, shiki, topicNotificator, profileNotificator, db),
+		MessageHandler:  messagehandler.NewMessageHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator),
 	}
 }
 

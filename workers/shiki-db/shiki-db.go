@@ -1,6 +1,9 @@
 package shikidb
 
 import (
+	"errors"
+	"fmt"
+	"regexp"
 	"shikimori-notificator/workers/shiki-db/cacher"
 
 	shikimori "github.com/golangify/go-shiki-api"
@@ -89,4 +92,28 @@ func (d *ShikiDB) GetProfileByNickname(nickname string) (*shikitypes.UserProfile
 
 func (d *ShikiDB) ClearCache() uint {
 	return d.cacher.Clear()
+}
+
+var imageLinkRegexp = regexp.MustCompile(`((?:http|https):\/\/[a-z]+\.shikimori\.one\/system\/user_images_h\/original\/[a-z0-9]+\/[a-z0-9]+\.jpg)`)
+
+func (d *ShikiDB) GetImage(imageID uint) (*string, error) {
+	imageLink := d.cacher.GetImage(imageID)
+	if imageLink != nil {
+		return imageLink, nil
+	}
+
+	data, err := d.shiki.PreviewComment(fmt.Sprint("[image=", imageID, "]"))
+	if err != nil {
+		return nil, err
+	}
+
+	matches := imageLinkRegexp.FindAllString(string(data), -1)
+	if len(matches) == 0 {
+		return nil, errors.New("изображение не найдено")
+	}
+
+	imageLink = &matches[0]
+	d.cacher.SetImage(imageID, *imageLink)
+
+	return imageLink, nil
 }
