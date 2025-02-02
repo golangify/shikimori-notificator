@@ -21,7 +21,7 @@ func (p *BBCodeParser) parseBBImage(text string) string {
 		imageBBCode := fmt.Sprint("[image=", imageID, "]")
 
 		if _, err := p.shikiDB.GetImageLink(uint(imageID)); err == nil {
-			text = strings.ReplaceAll(text, imageBBCode, fmt.Sprint("[/image_", imageID, "]"))
+			text = strings.ReplaceAll(text, imageBBCode, fmt.Sprint("[/image", imageID, "]"))
 		} else {
 			text = strings.ReplaceAll(text, imageBBCode, fmt.Sprint("<del>", imageBBCode, "</del>"))
 		}

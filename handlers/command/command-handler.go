@@ -71,6 +71,13 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *s
 			Function:    h.Help,
 		},
 		{
+			Name:        "topics",
+			Usage:       "/topics",
+			Regexp:      regexp.MustCompile(`^\/topics$`),
+			Description: "получить список моих отслеживаемых топиков",
+			Function:    h.Topics,
+		},
+		{
 			Name:  "topic",
 			Usage: "/topic [id]",
 			ActivatorRegexps: []*regexp.Regexp{
@@ -81,18 +88,18 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *s
 			Function:    h.Topic,
 		},
 		{
-			Name:        "topics",
-			Usage:       "/topics",
-			Regexp:      regexp.MustCompile(`^\/topics$`),
-			Description: "получить список моих отслеживаемых топиков",
-			Function:    h.Topics,
-		},
-		{
 			Name:        "toptopics",
 			Usage:       "/toptopics",
 			Regexp:      regexp.MustCompile(`^\/toptopics$`),
 			Description: "самые отслеживаемые топики",
 			Function:    h.Toptopics,
+		},
+		{
+			Name:        "profiles",
+			Usage:       "/profiles",
+			Regexp:      regexp.MustCompile(`^\/profiles$`),
+			Description: "получить список моих отслеживаемых профилей",
+			Function:    h.Profiles,
 		},
 		{
 			Name:  "profile",
@@ -103,13 +110,6 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *s
 			Regexp:      regexp.MustCompile(`^\/profile(?:_| )?(\d+|.+)$`),
 			Description: "получить пользователя по id или имени",
 			Function:    h.Profile,
-		},
-		{
-			Name:        "profiles",
-			Usage:       "/profiles",
-			Regexp:      regexp.MustCompile(`^\/profiles$`),
-			Description: "получить список моих отслеживаемых профилей",
-			Function:    h.Profiles,
 		},
 		{
 			Name:        "topprofiles",
