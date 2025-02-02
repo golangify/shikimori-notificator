@@ -15,6 +15,11 @@ func NewBBCodeParser(shikidb *shikidb.ShikiDB) *BBCodeParser {
 }
 
 func (p *BBCodeParser) Parse(text string) string {
+	runeText := []rune(text)
+	if len(runeText) > 3900 {
+		runeText = runeText[:3900]
+	}
+	text = string(runeText)
 	text = p.parseSingleTags(text)
 	return text
 }

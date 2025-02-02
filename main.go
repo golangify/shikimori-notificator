@@ -5,7 +5,9 @@ import (
 	"shikimori-notificator/config"
 	updatehandler "shikimori-notificator/handlers/update"
 	"shikimori-notificator/models"
+	"shikimori-notificator/view/constructors/bbcode"
 	commentconstructor "shikimori-notificator/view/constructors/comment"
+	topicconstructor "shikimori-notificator/view/constructors/topic"
 	"shikimori-notificator/workers/filter"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	shikidb "shikimori-notificator/workers/shiki-db"
@@ -49,7 +51,10 @@ func main() {
 
 	shikiDB := shikidb.NewShikiDB(shiki)
 	filter := filter.NewFilter()
-	commentsConstructor := commentconstructor.NewCommentConstructor(shikiDB)
+	bbCodeParser := bbcode.NewBBCodeParser(shikiDB)
+
+	commentsConstructor := commentconstructor.NewCommentConstructor(bbCodeParser)
+	topicConstructor := topicconstructor.NewTopicConstructor(bbCodeParser)
 
 	topicNotificator := topicnotificator.NewTopicNotificator(bot, shiki, db, shikiDB, filter, commentsConstructor)
 	go topicNotificator.Run()
@@ -57,7 +62,7 @@ func main() {
 	profileNotificator := profilenotificator.NewProfileNotificator(bot, shiki, shikiDB, db, filter, commentsConstructor)
 	go profileNotificator.Run()
 
-	uh := updatehandler.New(bot, shiki, db, shikiDB, topicNotificator, profileNotificator)
+	uh := updatehandler.New(bot, shiki, db, shikiDB, topicNotificator, profileNotificator, topicConstructor)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60

@@ -5,6 +5,7 @@ import (
 	"html"
 	"regexp"
 	"shikimori-notificator/models"
+	topicconstructor "shikimori-notificator/view/constructors/topic"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	shikidb "shikimori-notificator/workers/shiki-db"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
@@ -28,10 +29,12 @@ type CallbackHandler struct {
 	TopicNotificator   *topicnotificator.TopicNotificator
 	ProfileNotificator *profilenotificator.ProfileNotificator
 
+	TopicConstructor *topicconstructor.TopicConstructor
+
 	callbacks []Callback
 }
 
-func NewCallbackHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, db *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator) *CallbackHandler {
+func NewCallbackHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, db *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator, topicConstructor *topicconstructor.TopicConstructor) *CallbackHandler {
 	h := &CallbackHandler{
 		Bot:      bot,
 		Shiki:    shiki,
@@ -40,6 +43,8 @@ func NewCallbackHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *
 
 		TopicNotificator:   topicNotificator,
 		ProfileNotificator: profileNotificator,
+
+		TopicConstructor: topicConstructor,
 	}
 
 	h.callbacks = []Callback{

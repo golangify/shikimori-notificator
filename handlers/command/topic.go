@@ -2,7 +2,6 @@ package commandhandler
 
 import (
 	"shikimori-notificator/models"
-	topicconstructor "shikimori-notificator/view/constructors/topic"
 	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -21,10 +20,10 @@ func (h *CommandHandler) Topic(update *tgbotapi.Update, user *models.User, args 
 		panic(err)
 	}
 
-	messageText := topicconstructor.ToMessageText(topic)
+	messageText := h.TopicConstructor.Text(topic)
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, messageText)
-	msg.ReplyMarkup = topicconstructor.ToInlineKeyboard(topic, h.TopicNotificator.IsUserTrackingTopic(user.ID, topic.ID))
+	msg.ReplyMarkup = h.TopicConstructor.InlineKeyboard(topic, h.TopicNotificator.IsUserTrackingTopic(user.ID, topic.ID))
 	msg.ParseMode = tgbotapi.ModeHTML
 
 	_, err = h.Bot.Send(msg)

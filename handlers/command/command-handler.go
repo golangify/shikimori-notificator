@@ -3,6 +3,7 @@ package commandhandler
 import (
 	"regexp"
 	"shikimori-notificator/models"
+	topicconstructor "shikimori-notificator/view/constructors/topic"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	shikidb "shikimori-notificator/workers/shiki-db"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
@@ -41,10 +42,12 @@ type CommandHandler struct {
 	TopicNotificator   *topicnotificator.TopicNotificator
 	ProfileNotificator *profilenotificator.ProfileNotificator
 
+	TopicConstructor *topicconstructor.TopicConstructor
+
 	commands []*command
 }
 
-func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, db *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator) *CommandHandler {
+func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *shikidb.ShikiDB, db *gorm.DB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator, topicConstructor *topicconstructor.TopicConstructor) *CommandHandler {
 	h := &CommandHandler{
 		Bot:      bot,
 		Shiki:    shiki,
@@ -53,6 +56,8 @@ func NewCommandHandler(bot *tgbotapi.BotAPI, shiki *shikimori.Client, shikidb *s
 
 		TopicNotificator:   topicNotificator,
 		ProfileNotificator: profileNotificator,
+
+		TopicConstructor: topicConstructor,
 	}
 
 	h.commands = []*command{

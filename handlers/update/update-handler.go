@@ -7,6 +7,8 @@ import (
 	commandhandler "shikimori-notificator/handlers/command"
 	messagehandler "shikimori-notificator/handlers/message"
 	"shikimori-notificator/models"
+	"shikimori-notificator/view/constructors/bbcode"
+	topicconstructor "shikimori-notificator/view/constructors/topic"
 	profilenotificator "shikimori-notificator/workers/profile-notificator"
 	shikidb "shikimori-notificator/workers/shiki-db"
 	topicnotificator "shikimori-notificator/workers/topic-notificator"
@@ -22,20 +24,26 @@ type UpdateHandler struct {
 	ShikiDB  *shikidb.ShikiDB
 	Database *gorm.DB
 
+	TopicConstructor *topicconstructor.TopicConstructor
+
 	CommandHandler  *commandhandler.CommandHandler
 	CallbackHandler *callbackhandler.CallbackHandler
 	MessageHandler  *messagehandler.MessageHandler
+
+	BBCodeParser *bbcode.BBCodeParser
 }
 
-func New(bot *tgbotapi.BotAPI, shiki *shikimori.Client, db *gorm.DB, shikidb *shikidb.ShikiDB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator) *UpdateHandler {
+func New(bot *tgbotapi.BotAPI, shiki *shikimori.Client, db *gorm.DB, shikidb *shikidb.ShikiDB, topicNotificator *topicnotificator.TopicNotificator, profileNotificator *profilenotificator.ProfileNotificator, topicConstructor *topicconstructor.TopicConstructor) *UpdateHandler {
 	return &UpdateHandler{
 		Bot:      bot,
 		Shiki:    shiki,
 		ShikiDB:  shikidb,
 		Database: db,
 
-		CommandHandler:  commandhandler.NewCommandHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator),
-		CallbackHandler: callbackhandler.NewCallbackHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator),
+		TopicConstructor: topicConstructor,
+
+		CommandHandler:  commandhandler.NewCommandHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator, topicConstructor),
+		CallbackHandler: callbackhandler.NewCallbackHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator, topicConstructor),
 		MessageHandler:  messagehandler.NewMessageHandler(bot, shiki, shikidb, db, topicNotificator, profileNotificator),
 	}
 }

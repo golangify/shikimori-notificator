@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html"
 	"shikimori-notificator/view/constructors/bbcode"
-	shikidb "shikimori-notificator/workers/shiki-db"
 	"strconv"
 
 	shikimori "github.com/golangify/go-shiki-api"
@@ -15,9 +14,9 @@ type CommentConstructor struct {
 	bbCodeParser *bbcode.BBCodeParser
 }
 
-func NewCommentConstructor(shikidb *shikidb.ShikiDB) *CommentConstructor {
+func NewCommentConstructor(bbCodeParser *bbcode.BBCodeParser) *CommentConstructor {
 	return &CommentConstructor{
-		bbCodeParser: bbcode.NewBBCodeParser(shikidb),
+		bbCodeParser: bbCodeParser,
 	}
 }
 
@@ -29,11 +28,7 @@ func (c *CommentConstructor) Profile(comment *shikitypes.Comment, profile *shiki
 		shikimori.ShikiSchema, shikimori.ShikiDomain, comment.ID,
 		html.EscapeString(comment.Body),
 	)
-	runeResult := []rune(result)
-	if len(runeResult) > 4096 {
-		runeResult = runeResult[:4096]
-	}
-	result = c.bbCodeParser.Parse(string(runeResult))
+	result = c.bbCodeParser.Parse(result)
 	return result
 }
 
@@ -45,10 +40,6 @@ func (c *CommentConstructor) Topic(comment *shikitypes.Comment, commentableTopic
 		shikimori.ShikiSchema, shikimori.ShikiDomain, comment.ID,
 		html.EscapeString(comment.Body),
 	)
-	runeResult := []rune(result)
-	if len(runeResult) > 4096 {
-		runeResult = runeResult[:4096]
-	}
-	result = c.bbCodeParser.Parse(string(runeResult))
+	result = c.bbCodeParser.Parse(result)
 	return result
 }

@@ -3,26 +3,34 @@ package topicconstructor
 import (
 	"fmt"
 	"html"
+	"shikimori-notificator/view/constructors/bbcode"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	shikimori "github.com/golangify/go-shiki-api"
 	shikitypes "github.com/golangify/go-shiki-api/types"
 )
 
-func ToMessageText(t *shikitypes.Topic) string {
+type TopicConstructor struct {
+	bbCodeParser *bbcode.BBCodeParser
+}
+
+func NewTopicConstructor(bbCodeParser *bbcode.BBCodeParser) *TopicConstructor {
+	return &TopicConstructor{
+		bbCodeParser: bbCodeParser,
+	}
+}
+
+func (p *TopicConstructor) Text(t *shikitypes.Topic) string {
 	messageText := fmt.Sprintf("<a href='%s'>%s</a>\n\n%s",
 		shikimori.ShikiSchema+"://"+shikimori.ShikiDomain+t.Forum.URL+"/"+fmt.Sprint(t.ID),
 		t.TopicTitle,
 		html.EscapeString(t.Body),
 	)
-	runeMessageText := []rune(messageText)
-	if len(runeMessageText) > 3900 {
-		runeMessageText = runeMessageText[:3900]
-	}
-	return string(runeMessageText)
+	messageText = p.bbCodeParser.Parse(messageText)
+	return messageText
 }
 
-func ToInlineKeyboard(t *shikitypes.Topic, isTopicTracking bool) *tgbotapi.InlineKeyboardMarkup {
+func (p *TopicConstructor) InlineKeyboard(t *shikitypes.Topic, isTopicTracking bool) *tgbotapi.InlineKeyboardMarkup {
 	keyboard := tgbotapi.NewInlineKeyboardMarkup()
 	if isTopicTracking {
 		keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, tgbotapi.NewInlineKeyboardRow(

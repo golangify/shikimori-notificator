@@ -2,7 +2,6 @@ package callbackhandler
 
 import (
 	"shikimori-notificator/models"
-	topicconstructor "shikimori-notificator/view/constructors/topic"
 	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -24,8 +23,8 @@ func (h *CallbackHandler) Topic(с *Callback, update *tgbotapi.Update, user *mod
 		panic(err)
 	}
 
-	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, topicconstructor.ToMessageText(topic))
-	msg.ReplyMarkup = topicconstructor.ToInlineKeyboard(topic, h.TopicNotificator.IsUserTrackingTopic(user.ID, topic.ID))
+	msg := tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, h.TopicConstructor.Text(topic))
+	msg.ReplyMarkup = h.TopicConstructor.InlineKeyboard(topic, h.TopicNotificator.IsUserTrackingTopic(user.ID, topic.ID))
 	msg.ParseMode = tgbotapi.ModeHTML
 
 	h.Bot.Send(msg)
