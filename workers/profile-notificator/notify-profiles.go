@@ -11,6 +11,15 @@ import (
 )
 
 func (n *ProfileNotificator) notifyProfiles() error {
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Println("notify profiles упал!")
+			log.Println(err)
+			time.Sleep(time.Second * 10)
+			n.notifyProfiles()
+		}
+	}()
 	var trackedProfiles []models.TrackedProfile
 	err := n.Database.Find(&trackedProfiles).Order("last_comment_id").Distinct("profile_id").Error
 	if err != nil {

@@ -11,6 +11,15 @@ import (
 )
 
 func (n *ProfileNotificator) notifyPosting() error {
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Println("notify posting упал!")
+			log.Println(err)
+			time.Sleep(time.Second * 10)
+			n.notifyPosting()
+		}
+	}()
 	t := time.NewTicker(time.Second * 2)
 	defer t.Stop()
 	trackedProfiles := make([]models.TrackedProfile, 0)
@@ -32,7 +41,7 @@ func (n *ProfileNotificator) notifyPosting() error {
 			continue
 		}
 
-		commentIDs, err := n.GetLast20PostedCommentIDs(userProfile.Nickname)
+		commentIDs, err := n.GetLast20PostedCommentsID(userProfile.Nickname)
 		if err != nil {
 			log.Println(err)
 			continue

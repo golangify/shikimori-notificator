@@ -62,7 +62,7 @@ func (n *ProfileNotificator) Run() {
 	}
 }
 
-func (n *ProfileNotificator) GetLast20PostedCommentIDs(username string) ([]uint, error) {
+func (n *ProfileNotificator) GetLast20PostedCommentsID(username string) ([]uint, error) {
 	var result []uint
 	resp, err := n.Shiki.MakeRequest(http.MethodGet, "/"+username+"/comments", nil, nil, nil)
 	if err != nil {
@@ -100,7 +100,7 @@ func (n *ProfileNotificator) AddTrackingProfile(userID uint, profileID uint) err
 		lastCommentID = lastComment[0].ID
 	}
 
-	lastPostedComment, err := n.GetLast20PostedCommentIDs(profile.Nickname)
+	lastPostedComment, err := n.GetLast20PostedCommentsID(profile.Nickname)
 	if err != nil {
 		return err
 	}

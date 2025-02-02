@@ -39,6 +39,15 @@ func NewTopicNotificator(bot *tgbotapi.BotAPI, shiki *shikimori.Client, database
 }
 
 func (n *TopicNotificator) Run() {
+	defer func() {
+		err := recover()
+		if err != nil {
+			log.Println("topic notificator упал!")
+			log.Println(err)
+			time.Sleep(time.Second * 10)
+			n.Run()
+		}
+	}()
 	t := time.NewTicker(time.Minute)
 	for range t.C {
 		var trackedTopics []models.TrackedTopic

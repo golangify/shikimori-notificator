@@ -30,7 +30,7 @@ func (p *BBCodeParser) parseBBComment(text string) string {
 				text,
 				fmt.Sprint("[comment=", commentID, ";", userID, "]"),
 				fmt.Sprint(
-					"<a href='", shikimori.ShikiSchema, "://", shikimori.ShikiDomain, "/", nickname, "'>", nickname, "</a> ",
+					"<a href='", shikimori.ShikiSchema, "://", shikimori.ShikiDomain, "/", nickname, "'>@", nickname, "</a> ",
 					"<a href='", shikimori.ShikiSchema, "://", shikimori.ShikiDomain, "/comments/", commentID, "'>#</a>",
 				),
 			)

@@ -1,13 +1,15 @@
 package config
 
+import "time"
+
 const perm = 0666
 
 type Config struct {
-	path             string
-	Database         databaseConfig         `json:"database"`
-	Telegram         telegramConfig         `json:"telegram"`
-	Shikimori        shikimoriConfig        `json:"shikimori"`
-	TopicNotificator topicNotificatorConfig `json:"topic_notificator"`
+	path          string
+	Database      databaseConfig      `json:"database"`
+	Telegram      telegramConfig      `json:"telegram"`
+	Shikimori     shikimoriConfig     `json:"shikimori"`
+	Notifications notificationsConfig `json:"notification_config"`
 }
 
 type databaseConfig struct {
@@ -24,5 +26,7 @@ type shikimoriConfig struct {
 	UserAgent string `json:"user_agent"`
 }
 
-type topicNotificatorConfig struct {
+type notificationsConfig struct {
+	CheckDelay time.Duration `json:"check_delay"`
+	MailDelay  time.Duration `json:"mail_delay"`
 }

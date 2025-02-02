@@ -96,7 +96,7 @@ func (d *ShikiDB) ClearCache() uint {
 
 var imageLinkRegexp = regexp.MustCompile(`((?:http|https):\/\/[a-z]+\.shikimori\.one\/system\/user_images_h\/original\/[a-z0-9]+\/[a-z0-9]+\.jpg)`)
 
-func (d *ShikiDB) GetImage(imageID uint) (*string, error) {
+func (d *ShikiDB) GetImageLink(imageID uint) (*string, error) {
 	imageLink := d.cacher.GetImage(imageID)
 	if imageLink != nil {
 		return imageLink, nil

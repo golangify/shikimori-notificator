@@ -16,7 +16,7 @@ var removePrefixImageLinkRegexp = regexp.MustCompile(`(https:\/\/[a-z]+\.shikimo
 
 func (h *CommandHandler) image(update *tgbotapi.Update, _ *models.User, args []string) {
 	imageID, _ := strconv.ParseUint(args[1], 10, 32)
-	imageLink, err := h.ShikiDB.GetImage(uint(imageID))
+	imageLink, err := h.ShikiDB.GetImageLink(uint(imageID))
 	if err != nil {
 		panic(err)
 	}
