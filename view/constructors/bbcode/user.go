@@ -16,7 +16,6 @@ var bbUserRegexp = regexp.MustCompile(`\[user=(\d+)\]`)
 func (p *BBCodeParser) parseUser(text string) string {
 	for _, match := range bbUserRegexp.FindAllStringSubmatch(text, -1) {
 		userID, _ := strconv.ParseUint(match[1], 10, 32)
-		userBBCode := fmt.Sprint("[user=", userID, "]")
 		user, err := p.shikiDB.GetProfile(uint(userID))
 		var nickname string
 		if err == nil {
@@ -24,7 +23,7 @@ func (p *BBCodeParser) parseUser(text string) string {
 		} else {
 			nickname = err.Error()
 		}
-		text = strings.ReplaceAll(text, userBBCode, fmt.Sprint("<a href='", shikimori.ShikiSchema, "://", shikimori.ShikiDomain, "/", url.QueryEscape(nickname), "'>", html.EscapeString(nickname), "</a>"))
+		text = strings.ReplaceAll(text, match[0], fmt.Sprint("<a href='", shikimori.ShikiSchema, "://", shikimori.ShikiDomain, "/", url.QueryEscape(nickname), "'>", html.EscapeString(nickname), "</a>"))
 	}
 
 	return text

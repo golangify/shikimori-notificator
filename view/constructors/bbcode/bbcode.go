@@ -31,10 +31,14 @@ func (p *BBCodeParser) parseSingleTags(text string) string {
 	text = p.parseReplyComment(text)
 	text = p.parseImage(text)
 	text = p.parseUser(text)
+	text = p.parseTopic(text)
 	return text
 }
 
 func (p *BBCodeParser) parseDoubleTags(text string) string {
+	text = p.parseBold(text)
+	text = p.parseItalic(text)
+	text = p.parseUnderline(text)
 	text = p.parseSpoiler(text)
 	return text
 }
