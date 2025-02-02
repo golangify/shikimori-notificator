@@ -10,7 +10,7 @@ import (
 )
 
 func (h *CommandHandler) Topic(update *tgbotapi.Update, user *models.User, args []string) {
-	topicID, _ := strconv.ParseUint(args[2], 10, 32)
+	topicID, _ := strconv.ParseUint(args[1], 10, 32)
 	topic, err := h.ShikiDB.GetTopic(uint(topicID))
 	if err != nil {
 		if err == shikimori.ErrNotFound {
