@@ -9,6 +9,7 @@ import (
 func (p *BBCodeParser) parseSpoiler(text string) string {
 	text = p.parseInlineSpoiler(text)
 	text = p.parseSpoilerBlock(text)
+	text = p.parseSpoilerWithTitle(text)
 	return text
 }
 
@@ -26,8 +27,19 @@ var bbSpoilerBlock = regexp.MustCompile(`\[spoiler_block\]((?s).+)\[/spoiler_blo
 
 func (p *BBCodeParser) parseSpoilerBlock(text string) string {
 	for _, match := range bbSpoilerBlock.FindAllStringSubmatch(text, -1) {
-		SpoilerBlockBody := match[1]
-		text = strings.ReplaceAll(text, match[0], fmt.Sprint("<span class='tg-spoiler'>", SpoilerBlockBody, "</span>"))
+		spoilerBlockBody := match[1]
+		text = strings.ReplaceAll(text, match[0], fmt.Sprint("<span class='tg-spoiler'>", spoilerBlockBody, "</span>"))
+	}
+	return text
+}
+
+var bbSpoilerWithTitle = regexp.MustCompile(`\[spoiler=(.+)\]((?s).+)\[/spoiler\]`)
+
+func (p *BBCodeParser) parseSpoilerWithTitle(text string) string {
+	for _, match := range bbSpoilerWithTitle.FindAllStringSubmatch(text, -1) {
+		spoilerTitle := match[1]
+		spoilerBlockBody := match[2]
+		text = strings.ReplaceAll(text, match[0], fmt.Sprint("(", spoilerTitle, ")<span class='tg-spoiler'>", spoilerBlockBody, "</span>"))
 	}
 	return text
 }
