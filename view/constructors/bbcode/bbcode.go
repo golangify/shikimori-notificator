@@ -23,22 +23,14 @@ func (p *BBCodeParser) Parse(text string) string {
 	}
 	text = string(runeText)
 	text = p.parseSingleTags(text)
-	text = p.parseDoubleTags(text)
 	return text
 }
 
 func (p *BBCodeParser) parseSingleTags(text string) string {
+	text = p.parseReplies(text)
 	text = p.parseReplyComment(text)
 	text = p.parseImage(text)
 	text = p.parseUser(text)
 	text = p.parseTopic(text)
-	return text
-}
-
-func (p *BBCodeParser) parseDoubleTags(text string) string {
-	text = p.parseBold(text)
-	text = p.parseItalic(text)
-	text = p.parseUnderline(text)
-	text = p.parseSpoiler(text)
 	return text
 }
