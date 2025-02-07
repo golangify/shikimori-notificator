@@ -17,10 +17,7 @@ func (f *Filter) Ok(commentID, userID uint) bool {
 	if ok && slices.Contains(userIDs, userID) {
 		return false
 	}
-	if ok {
-		userIDs = append(userIDs, userID)
-		f.DataDuplicate[commentID] = userIDs
-	} else {
+	if !ok {
 		f.DataDuplicate[commentID] = []uint{userID}
 	}
 	return true
