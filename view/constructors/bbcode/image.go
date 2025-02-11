@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var bbImageRegexp = regexp.MustCompile(`\[(?:image|poster)=(\d+).+?[^\[]]`)
+var bbImageRegexp = regexp.MustCompile(`\[(?:image|poster)=(\d+)[^\]]*\]`)
 
 func (p *BBCodeParser) parseImage(text string) string {
 	for _, match := range bbImageRegexp.FindAllStringSubmatch(text, -1) {
