@@ -24,7 +24,7 @@ func (p *BBCodeParser) parseReplies(text string) string {
 			if err != nil {
 				continue
 			}
-			replies += fmt.Sprint("[comment=", comment.ID, "]")
+			replies += fmt.Sprint("[comment=", comment.ID, "],")
 		}
 		text = strings.ReplaceAll(text, match[0], replies)
 	}

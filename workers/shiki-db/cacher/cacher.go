@@ -34,7 +34,12 @@ func (c *Cacher) NumCached() uint {
 }
 
 func (c *Cacher) Clear() uint {
-	numDeleted := c.NumCached()
+	var numDeleted uint
+	numDeleted += c.cachedComments.Clear()
+	numDeleted += c.cachedProfiles.Clear()
+	numDeleted += c.cachedProfilesByNickname.Clear()
+	numDeleted += c.cachedTopics.Clear()
+	numDeleted += c.cachedImagesLink.Clear()
 	return numDeleted
 }
 
