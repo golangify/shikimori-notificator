@@ -15,5 +15,4 @@ func (c *Config) setSafeValues() {
 	if c.Notifications.MailDelay < minMailDelay {
 		c.Notifications.MailDelay = minMailDelay
 	}
-	c.Save()
 }
