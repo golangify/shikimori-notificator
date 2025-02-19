@@ -25,13 +25,13 @@ func LoadFromJsonFile(path string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg.setSafeValues()
 	cfg.Save()
 
 	return cfg, nil
 }
 
 func (c *Config) Save() error {
+	c.setSafeValues()
 	data, err := json.MarshalIndent(c, "", "\t")
 	if err != nil {
 		return err
