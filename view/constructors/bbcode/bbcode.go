@@ -2,7 +2,6 @@ package bbcode
 
 import (
 	shikidb "shikimori-notificator/workers/shiki-db"
-	"strings"
 )
 
 type BBCodeParser struct {
@@ -16,7 +15,6 @@ func NewBBCodeParser(shikidb *shikidb.ShikiDB) *BBCodeParser {
 }
 
 func (p *BBCodeParser) Parse(text string) string {
-	text = strings.TrimSpace(text)
 	runeText := []rune(text)
 	if len(runeText) > 3900 {
 		runeText = runeText[:3900]

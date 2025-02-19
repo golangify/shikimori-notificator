@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html"
 	"shikimori-notificator/view/constructors/bbcode"
+	"strings"
 
 	shikitypes "github.com/golangify/go-shiki-api/types"
 )
@@ -21,7 +22,7 @@ func NewCommentConstructor(bbCodeParser *bbcode.BBCodeParser) *CommentConstructo
 func (c *CommentConstructor) Profile(comment *shikitypes.Comment, profile *shikitypes.UserProfile) string {
 	result := fmt.Sprint(
 		"[user=", comment.User.ID, "] в профиле [user=", comment.CommentableID, "]\n\n",
-		html.EscapeString(comment.Body),
+		html.EscapeString(strings.TrimSpace(comment.Body)),
 	)
 	result = c.bbCodeParser.Parse(result)
 	return result
@@ -30,7 +31,7 @@ func (c *CommentConstructor) Profile(comment *shikitypes.Comment, profile *shiki
 func (c *CommentConstructor) Topic(comment *shikitypes.Comment, commentableTopic *shikitypes.Topic) string {
 	result := fmt.Sprint(
 		"[user=", comment.User.ID, "] в топике [topic=", comment.CommentableID, "]\n\n",
-		html.EscapeString(comment.Body),
+		html.EscapeString(strings.TrimSpace(comment.Body)),
 	)
 	result = c.bbCodeParser.Parse(result)
 	return result
