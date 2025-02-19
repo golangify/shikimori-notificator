@@ -61,7 +61,9 @@ func (n *TopicNotificator) Run() {
 			topic, err := n.ShikiDB.GetTopic(trackedTopic.TopicID)
 			if err != nil {
 				if err == shikimori.ErrNotFound {
-					n.Database.Where("topic_id = ?", trackedTopic.TopicID).Delete(&trackedTopic)
+					if err = n.Database.Where("topic_id = ?", trackedTopic.TopicID).Delete(&trackedTopic).Error; err != nil {
+						log.Println(err)
+					}
 					continue
 				}
 				log.Println(err)
